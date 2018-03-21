@@ -67,7 +67,7 @@ uint32_t turn_control(int i)
 	//	output:
 	//			turnSpeed - value for motors from PD controller
 	
-	uint32_t turnSpeed = -((int32_t)(turnAngle + i*turnAngle90)) / (turnAngle1 / 90) - turnRate / 3;
+	uint32_t turnSpeed = -((int32_t)(turnAngle + i*turnAngle90)) / (turnAngle1 / 45) - turnRate / 20;
 
 	
 	return turnSpeed;
@@ -96,7 +96,7 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	{
 		
 		uint32_t t_speed = turn_control(dir);
-		motors.setSpeeds(t_speed, -t_speed);
+		motors.setSpeeds(-t_speed, t_speed);
 
 
 	}
@@ -191,10 +191,12 @@ void ir_init()
 void align_frames(uint32_t *initial)
 {
 	int turn_count = 0;
+	int max =0;
+	int max_index = 0;
 	uint16_t values[3] = {0};
 	uint16_t lengths[4] = {0};
 	uint32_t error = 0;
-	uint32_t m_speed = 400;
+	uint32_t m_speed = 100;
 	
 	// determine # of 90degree turns to rotate clockwise after max detect
 	if ((initial[0] < 4)&&(initial[1] > 4))
@@ -217,20 +219,54 @@ void align_frames(uint32_t *initial)
 	turnSensorReset();
 	
 	//rotate in 90 degree increments recording distances
-	for (int i=0; i<3; i++)
+	for (int i=0; i<4; i++)
 	{
 		ir_sense(values);
 		lengths[i] = values[0]+values[1];
 		
+		motors.setSpeeds(0,0);
+
+		
 		// Turn 90 deg
-		while(abs(turnAngle+(turnAngle90)) > (2*turnAngle1))
+		while((turnAngle+(turnAngle90)) > (5*turnAngle1))
 		{
 		  turnSensorUpdate();
-		  move_robot(&error, 0, vel, &m_speed);
+		  move_robot(&error, 1, vel, &m_speed);
+
 		}
 		
+		static char buffer[80];
+		sprintf(buffer, "%d %d %d %d\n", lengths[0],
+								lengths[1],
+								lengths[2],
+								lengths[3]
+								);
+	
+		Serial.print(buffer);
+		
+		motors.setSpeeds(0,0);
+		delay(1000);
 		turnSensorReset();
 	}
+	
+	for (int j=0; j<4; j++)
+	{
+		if (lengths[j] > max)
+		{
+			max_index = j;
+		}
+	}
+	
+	delay(1000);
+	
+	while((turnAngle+((turn_count+max_index)*turnAngle90)) > (5*turnAngle1))
+	{
+		  turnSensorUpdate();
+		  move_robot(&error, max_index, vel, &m_speed);
+
+	}
+	
+	
 	
 }
 

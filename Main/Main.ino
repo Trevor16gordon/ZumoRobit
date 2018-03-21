@@ -19,8 +19,7 @@ int cell_counter = 0;
 double* x_hat = 0;
 double* y_hat = 0;
 double* theta_hat =0;
-
-int intial[2] = {3,4}; //initial cell location
+uint32_t initial[2] = {3,4}; //initial cell location
 
 void setup() {
 
@@ -34,13 +33,17 @@ void setup() {
   // determine array of cells to visit on our way to finish
   
   ir_init();
+
+  delay(1000);
+
+  align_frames(initial);
 }
 
 void loop() {
 
   ir_sense(values);
 
-  printReadingsToSerial();
+  //printReadingsToSerial();
 }
 
 void printReadingsToSerial()
