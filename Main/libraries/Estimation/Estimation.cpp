@@ -6,10 +6,7 @@ double Q[3][3] = {{0.1, 0, 0}, {0, 0.1, 0}, {0, 0, 0.1}};
 double G[3][3] = {0};
 
 
-int interrupt_count = (CLOCK_FREQ/TIMER_MAX/10); //10Hz sampling frequency dt=0.1s
-
-
-void bayes(double* grid, char cardinal)
+/* void bayes(double* grid, char cardinal)
 {	// is this necessary for requirement 1? initial estimation???
 	
 	switch (cardinal)
@@ -36,10 +33,10 @@ void bayes(double* grid, char cardinal)
 			
 		}
 	}
-}
+} */
 
 
-void sampleInit()
+/* void sampleInit()
 {	// initializes TIMER1 with interrupt configured on compare value
 	// necessary for accurate sampling intervals dt
 
@@ -53,19 +50,19 @@ void sampleInit()
 	TCCR1B |= (1 &lt;&lt; CS12); // 256 prescaler
 	TIMSK1 |= (1 &lt;&lt; OCIE1A); // enable timer compare interrupt
 	interrupts(); // enable all interrupts
-}
+} */
 
 
-ISR(Timer1_COMPA_vect)
+/* ISR(Timer1_COMPA_vect)
 {
 	//interupt service routine called when TIMER1 issues interupt
 	
 	TCNT1 = interrupt_count; // reset count register in timer
 	EKF(&state_hat, &p, u, v, w, sensors) // call kalman filter function after DT interval
-}
+} */
 
 
-void EKF(double* state_hat, double* p, double u, double v, double w, double sensors)
-{
+//void EKF(double* state_hat, double* p, double u, double v, double w, double sensors)
+//{
 	
-}
+//}

@@ -72,6 +72,7 @@ uint32_t turn_control(int i)
 	return turnSpeed;
 }
 
+
 float vel(uint32_t t1, uint32_t t2, uint32_t deltad)
 {
 	uint32_t v;
@@ -118,6 +119,57 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	
 		motors.setSpeeds(leftMotor, rightMotor);
 	}
+}
+
+void align_frames(uint32_t *initial)
+{
+	int turn_count = 0;
+	uint16_t values[3] = {0};
+	uint16_t lengths[4] = {0};
+	uint32_t error = 0;
+	uint32_t m_speed = 400;
+	
+	// determine # of 90degree turns to rotate clockwise after max detect
+	if ((initial[0] < 4)&&(initial[1] > 4))
+	{
+		turn_count = 1;
+	}
+	else if ((initial[0] > 4)&&(initial[1] > 4))
+	{
+		turn_count = 0;
+	}
+	else if ((initial[0] < 4)&&(initial[1] < 4))
+	{
+		turn_count = 2;
+	}
+	else
+	{
+		turn_count = 3;
+	}
+	
+	turnSensorReset();
+	
+	//rotate in 90 degree increments recording distances
+	for (int i=0; i<3; i++)
+	{
+		values = ir_sense(&values);
+		lengths[i] = values[0]+values[1];
+		
+		// Turn 90 deg
+		while(abs(turnAngle+(turnAngle90)) > (2*turnAngle1))
+		{
+		  turnSensorUpdate();
+		  move_robot(&error, 0, vel, &m_speed);
+		}
+		
+		turnSensorReset();
+	}
+	
+	
+	
+	
+}
+
 }
 
 

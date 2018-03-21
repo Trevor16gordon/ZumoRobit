@@ -10,6 +10,7 @@ uint32_t turn_control(int angle);
 uint32_t speed_control(uint32_t* error);
 float vel(uint32_t t1, uint32_t t2, uint32_t deltad);
 void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed);
+void align_frames(uint32_t *initial);
 
 
 extern uint32_t turnAngle;
