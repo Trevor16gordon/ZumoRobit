@@ -122,7 +122,7 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	}
 }	
 
-uint16_t ir_sense(uint16_t* values)
+void ir_sense(uint16_t *values)
 {
 	static uint16_t lastSampleTime = 0;
 	
@@ -145,9 +145,9 @@ uint16_t ir_sense(uint16_t* values)
 		right = proxSensors.countsRightWithRightLeds();
 	}
 	
-	*values = left;
-	*(values+1) = front;
-	*(values+2) = right;
+	values[0] = left;
+	values[1] = front;
+	values[2] = right;
 }
 
 
@@ -210,7 +210,7 @@ void align_frames(uint32_t *initial)
 	//rotate in 90 degree increments recording distances
 	for (int i=0; i<3; i++)
 	{
-		values = ir_sense(&values);
+		ir_sense(values);
 		lengths[i] = values[0]+values[1];
 		
 		// Turn 90 deg
@@ -223,12 +223,9 @@ void align_frames(uint32_t *initial)
 		turnSensorReset();
 	}
 	
-	
-	
-	
 }
 
-}
+
 
 
 

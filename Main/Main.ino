@@ -1,7 +1,7 @@
 #include <Zumo32U4.h>
 //#include <Estimation.h>
 #include <robot_control.h>
-//#include <TurnSensor.h>
+#include <TurnSensor.h>
 Zumo32U4ButtonA buttonA;
 Zumo32U4LCD lcd;
 L3G gyro;
