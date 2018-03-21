@@ -11,6 +11,8 @@ uint32_t speed_control(uint32_t* error);
 float vel(uint32_t t1, uint32_t t2, uint32_t deltad);
 void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed);
 void align_frames(uint32_t *initial);
+uint16_t ir_sense();
+void ir_init();
 
 
 extern uint32_t turnAngle;
@@ -21,4 +23,6 @@ extern Zumo32U4ButtonA buttonA;
 extern Zumo32U4LCD lcd;
 extern L3G gyro;
 extern Zumo32U4Motors motors;
-
+extern Zumo32U4LineSensors lineSensors;
+extern Zumo32U4ProximitySensors proxSensors;
+extern Zumo32U4LCD lcd;

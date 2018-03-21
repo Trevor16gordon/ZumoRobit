@@ -1,8 +1,13 @@
 #include <Zumo32U4.h>
-#include <Estimation.h>
+//#include <Estimation.h>
 #include <robot_control.h>
-#include <TurnSensor.h>
-
+//#include <TurnSensor.h>
+Zumo32U4ButtonA buttonA;
+Zumo32U4LCD lcd;
+L3G gyro;
+Zumo32U4Motors motors;
+Zumo32U4LineSensors lineSensors;
+Zumo32U4ProximitySensors proxSensors;
 
 //int goal[2] = {3,4};
 
@@ -26,6 +31,7 @@ void setup() {
 
   // determine array of cells to visit on our way to finish
   
+  ir_init();
 }
 
 void loop() {

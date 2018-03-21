@@ -2,6 +2,7 @@
 #include <Zumo32U4.h>
 #include <TurnSensor.h>
 #include "robot_control.h"
+
 //function declarations
 
 bool distance_reached(uint16_t counts, uint16_t objective, uint32_t* error, uint32_t* distance)
@@ -119,7 +120,64 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	
 		motors.setSpeeds(leftMotor, rightMotor);
 	}
+}	
+
+uint16_t ir_sense(uint16_t* values)
+{
+	static uint16_t lastSampleTime = 0;
+	
+	uint16_t left;
+	uint16_t front;
+	uint16_t right;
+	
+	if ((uint16_t)(millis() - lastSampleTime) >= 100)
+	{
+		lastSampleTime = millis();
+
+		// Send IR pulses and read the proximity sensors.
+		proxSensors.read();
+	
+
+		left = proxSensors.countsLeftWithLeftLeds();
+		//	proxSensors.countsLeftWithRightLeds();
+		front = (proxSensors.countsFrontWithLeftLeds() + proxSensors.countsFrontWithRightLeds())/2;
+		//	proxSensors.countsRightWithLeftLeds();
+		right = proxSensors.countsRightWithRightLeds();
+	}
+	
+	*values = left;
+	*(values+1) = front;
+	*(values+2) = right;
 }
+
+
+void ir_init()
+{
+	proxSensors.initThreeSensors();
+	
+	uint16_t levels[16];
+	for(int i = 1; i < 16; i ++)
+	{
+		levels[i-1] = i*2;
+	}
+	
+	proxSensors.setBrightnessLevels(levels, sizeof(levels)/2);
+	
+	ledYellow(1);
+	lcd.clear();
+	lcd.print(F("Line cal"));
+
+//	for (uint16_t i = 0; i < 400; i++)
+//	{
+//		lcd.gotoXY(0, 1);
+//		lcd.print(i);
+//		lineSensors.calibrate();
+//	}
+//
+//	ledYellow(0);
+//	lcd.clear();
+}
+
 
 void align_frames(uint32_t *initial)
 {
@@ -171,7 +229,6 @@ void align_frames(uint32_t *initial)
 }
 
 }
-
 
 
 
