@@ -121,7 +121,7 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	}
 }	
 
-uint16_t ir_sense(uint16_t* values)
+void ir_sense(uint16_t* values)
 {
 	static uint16_t lastSampleTime = 0;
 	
@@ -142,11 +142,19 @@ uint16_t ir_sense(uint16_t* values)
 		front = (proxSensors.countsFrontWithLeftLeds() + proxSensors.countsFrontWithRightLeds())/2;
 		//	proxSensors.countsRightWithLeftLeds();
 		right = proxSensors.countsRightWithRightLeds();
+		
+		values[0] = left;
+		values[1] = front;
+		values[2] = right;
 	}
+	  // static char buffer[80];
+  // sprintf(buffer, "%d %d %d\n",
+// &proxSensors,
+// front,
+// right
+  // );
+  // // Serial.print(buffer);
 	
-	*values = left;
-	*(values+1) = front;
-	*(values+2) = right;
 }
 
 void ir_init()
@@ -161,9 +169,9 @@ void ir_init()
 	
 	proxSensors.setBrightnessLevels(levels, sizeof(levels)/2);
 	
-	ledYellow(1);
-	lcd.clear();
-	lcd.print(F("Line cal"));
+	// ledYellow(1);
+	// lcd.clear();
+	// lcd.print(F("Line cal"));
 
 //	for (uint16_t i = 0; i < 400; i++)
 //	{
