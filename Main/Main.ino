@@ -8,6 +8,8 @@ L3G gyro;
 Zumo32U4Motors motors;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
+uint16_t values[3] = {0};
+
 
 //int goal[2] = {3,4};
 
@@ -36,16 +38,19 @@ void setup() {
 
 void loop() {
 
+  ir_sense(values);
 
-  //update next_cell
-  
+  printReadingsToSerial();
+}
 
-  //initiate error from next_cell's center
-  
+void printReadingsToSerial()
+{
+  static char buffer[80];
+  sprintf(buffer, "%d %d %d\n",
+  values[0],
+	values[1],
+	values[2]
+  );
+  Serial.print(buffer);
 
-  // fetch applicable sensor data and weight as necessary for measurement
-  
-  //
-
-  cell_counter += 1;
 }
