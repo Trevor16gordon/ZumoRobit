@@ -58,16 +58,16 @@ uint32_t speed_control(uint32_t* error)
 }
 
 
-uint32_t turn_control(int i)
+uint32_t turn_control(int angle)
 {
 	// function for PD control of robot turning
 	// 
 	//	inputs:
-	//			i - turn angle (pass 0 for tracking forward) 
+	//			angle - target angle (pass 0 for tracking forward) 
 	//	output:
 	//			turnSpeed - value for motors from PD controller
 	
-	uint32_t turnSpeed = -((int32_t)(turnAngle + i*turnAngle90)) / (turnAngle1 / 45) - turnRate / 20;
+	uint32_t turnSpeed = -((int32_t)(turnAngle + angle*turnAngle1)) / (turnAngle1 / 45) - turnRate / 30;
 
 	
 	return turnSpeed;
@@ -125,6 +125,13 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 
 void ir_sense(uint16_t* values)
 {
+	// function for using robots IR sensors
+	// 
+	//	inputs:
+	//			values - pointer to array of length 3 to write [L,R,F] IR data back to
+	//	output:
+	//			NONE
+	
 	static uint16_t lastSampleTime = 0;
 	
 	uint16_t left;
@@ -149,19 +156,18 @@ void ir_sense(uint16_t* values)
 		values[1] = front;
 		values[2] = right;
 	}
-	  // static char buffer[80];
-  // sprintf(buffer, "%d %d %d\n",
-// &proxSensors,
-// front,
-// right
-  // );
-  // // Serial.print(buffer);
-	
 }
 
 
 void ir_init()
 {
+	// function for initializing IR sensors
+	// 
+	//	inputs:
+	//			NONE
+	//	output:
+	//			NONE
+	
 	proxSensors.initThreeSensors();
 	
 	uint16_t levels[16];
@@ -171,35 +177,28 @@ void ir_init()
 	}
 	
 	proxSensors.setBrightnessLevels(levels, sizeof(levels)/2);
-	
-	// ledYellow(1);
-	// lcd.clear();
-	// lcd.print(F("Line cal"));
-
-//	for (uint16_t i = 0; i < 400; i++)
-//	{
-//		lcd.gotoXY(0, 1);
-//		lcd.print(i);
-//		lineSensors.calibrate();
-//	}
-//
-//	ledYellow(0);
-//	lcd.clear();
 }
 
 
 void align_frames(uint32_t *initial)
 {
+	// function for aligning world & coordinate frames after
+	//  initial placement with unknown orientation
+	// 
+	//	inputs:
+	//			initial - initial coordinate placements in [x,y]
+	//	output:
+	//			NONE
+	
 	int turn_count = 0;
-	int max =0;
 	int max_index = 0;
+	int max =0;
 	uint16_t values[3] = {0};
 	uint16_t lengths[4] = {0};
-	uint32_t error = 0;
 	uint32_t m_speed = 100;
 	
 	// determine # of 90degree turns to rotate clockwise after max detect
-	if ((initial[0] < 4)&&(initial[1] > 4))
+	if ((initial[0] < 5)&&(initial[1] > 4))
 	{
 		turn_count = 1;
 	}
@@ -207,7 +206,7 @@ void align_frames(uint32_t *initial)
 	{
 		turn_count = 0;
 	}
-	else if ((initial[0] < 4)&&(initial[1] < 4))
+	else if ((initial[0] < 5)&&(initial[1] < 5))
 	{
 		turn_count = 2;
 	}
@@ -218,6 +217,9 @@ void align_frames(uint32_t *initial)
 	
 	turnSensorReset();
 	
+	Serial.println(turn_count);
+	Serial.println(max_index);
+	
 	//rotate in 90 degree increments recording distances
 	for (int i=0; i<4; i++)
 	{
@@ -225,50 +227,88 @@ void align_frames(uint32_t *initial)
 		lengths[i] = values[0]+values[1];
 		
 		motors.setSpeeds(0,0);
-
 		
-		// Turn 90 deg
-		while((turnAngle+(turnAngle90)) > (5*turnAngle1))
-		{
-		  turnSensorUpdate();
-		  move_robot(&error, 1, vel, &m_speed);
-
-		}
-		
-		static char buffer[80];
-		sprintf(buffer, "%d %d %d %d\n", lengths[0],
-								lengths[1],
-								lengths[2],
-								lengths[3]
-								);
-	
-		Serial.print(buffer);
+		turn(89, 'R');
 		
 		motors.setSpeeds(0,0);
 		delay(1000);
 		turnSensorReset();
 	}
 	
+	// determine minimum distance orientation to walls
 	for (int j=0; j<4; j++)
 	{
 		if (lengths[j] > max)
 		{
 			max_index = j;
+			max = lengths[j];
 		}
 	}
 	
 	delay(1000);
+	Serial.println(turn_count);
+	Serial.println(max_index);
 	
-	while((turnAngle+((turn_count+max_index)*turnAngle90)) > (5*turnAngle1))
+	int alignment = (max_index + turn_count);
+	char dir = 'R';
+	
+	if (alignment > 4)
 	{
-		  turnSensorUpdate();
-		  move_robot(&error, max_index, vel, &m_speed);
+		alignment = alignment-4;
+	}		
+	//align coordinate frame & world frame
+	for (int k=0;k<alignment;k++)
+	{
+		turn(89, dir);
+		delay(1000);
+		Serial.println('here');
+		turnSensorReset();
+	}
+}
+	
 
+void turn(int angle, char direction)
+{
+	// function for turning arbritrary angle
+	// 
+	//	inputs:
+	//			angle - target angle (w.r.t gyro 0 degree angle)
+	//			direction - char 'L' or 'R' 		
+	//	output:
+	//			NONE
+	
+	uint32_t tspeed; 
+	int dir;
+	
+	switch(direction)
+	{
+		case 'L':
+			dir = -1;
+			break;
+		case 'R':
+			dir = 1;
+			break;
 	}
 	
+	uint16_t t1 = millis();
 	
+	while(millis()-t1 < 1000)
+	{
+		  //Serial.println(((dir*((int32_t)(turnAngle))+angle*turnAngle1))/turnAngle1);
+		  //Serial.println(dir);
+		  turnSensorUpdate();
+		  tspeed = turn_control(angle);
+		  motors.setSpeeds(-(dir)*tspeed, dir*tspeed);
+		  
+		 lcd.gotoXY(0, 0);
+		lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
+	}
 	
+	motors.setSpeeds(0,0);
 }
+	
+	
+
 
 
 

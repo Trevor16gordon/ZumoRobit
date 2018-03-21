@@ -19,7 +19,7 @@ int cell_counter = 0;
 double* x_hat = 0;
 double* y_hat = 0;
 double* theta_hat =0;
-uint32_t initial[2] = {3,4}; //initial cell location
+uint32_t initial[2] = {1,1}; //initial cell location
 
 void setup() {
 

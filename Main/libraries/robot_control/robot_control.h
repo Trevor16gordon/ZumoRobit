@@ -13,12 +13,12 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed);
 void align_frames(uint32_t *initial);
 void ir_sense(uint16_t* values);
 void ir_init();
+void turn(int angle, char direction);
 
-
+// These objects must be defined in your sketch.
 extern uint32_t turnAngle;
 extern int16_t turnRate;
 
-// These objects must be defined in your sketch.
 extern Zumo32U4ButtonA buttonA;
 extern Zumo32U4LCD lcd;
 extern L3G gyro;
