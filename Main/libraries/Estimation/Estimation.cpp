@@ -6,6 +6,10 @@ double Q[3][3] = {{0.1, 0, 0}, {0, 0.1, 0}, {0, 0, 0.1}};
 double G[3][3] = {0};
 
 
+
+
+
+
 /* void bayes(double* grid, char cardinal)
 {	// is this necessary for requirement 1? initial estimation???
 	

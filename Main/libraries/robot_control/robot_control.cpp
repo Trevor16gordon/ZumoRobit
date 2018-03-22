@@ -73,6 +73,21 @@ uint32_t turn_control(int angle)
 	return turnSpeed;
 }
 
+uint32_t turn_control_moving(int angle)
+{
+	// function for PD control of robot turning
+	// 
+	//	inputs:
+	//			angle - target angle (pass 0 for tracking forward) 
+	//	output:
+	//			turnSpeed - value for motors from PD controller
+	
+	uint32_t turnSpeed = -((int32_t)(turnAngle) - (int32_t)(angle*turnAngle1)) / (turnAngle1 / 45)- turnRate / 30;
+	//Serial.println((((int32_t)turnAngle) - angle*turnAngle1)/turnAngle1);
+	
+	return turnSpeed;
+}
+
 
 float vel(uint32_t t1, uint32_t t2, uint32_t deltad)
 {
@@ -83,7 +98,7 @@ float vel(uint32_t t1, uint32_t t2, uint32_t deltad)
 }
 
 
-void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
+void move_robot(uint32_t* error, int angle_desired, uint32_t* max_speed)
 {
 	
 	int leftMotor;
@@ -95,7 +110,7 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	if (*error < THRESHOLD)
 	{
 		
-		uint32_t t_speed = turn_control(dir);
+		uint32_t t_speed = turn_control(angle_desired);
 		motors.setSpeeds(-t_speed, t_speed);
 
 
@@ -104,16 +119,17 @@ void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed)
 	{	
 
 		uint32_t m_speed = speed_control(&e);
-		uint32_t t_speed = turn_control(dir);
+		uint32_t t_speed = turn_control(angle_desired);
+		t_speed = 0;
 		
-		if(vel < 200){
+/* 		if(vel < 200){
 		  *max_speed = + 10; 
 		}
 		else if(vel > 400){
 		  *max_speed =- 10;
-		}
+		} */
 		
-		constrain(m_speed, -*max_speed, *max_speed);
+		constrain(m_speed, -100, 100);
 			
 		leftMotor = m_speed - t_speed; 
 		rightMotor = m_speed + t_speed;
@@ -180,7 +196,7 @@ void ir_init()
 }
 
 
-void align_frames(uint32_t *initial)
+void align_frames(int *initial)
 {
 	// function for aligning world & coordinate frames after
 	//  initial placement with unknown orientation
@@ -228,7 +244,7 @@ void align_frames(uint32_t *initial)
 		
 		motors.setSpeeds(0,0);
 		
-		turn(89, 'R');
+		turn(89, 'R', 0);
 		
 		motors.setSpeeds(0,0);
 		delay(1000);
@@ -246,28 +262,25 @@ void align_frames(uint32_t *initial)
 	}
 	
 	delay(1000);
-	Serial.println(turn_count);
-	Serial.println(max_index);
 	
 	int alignment = (max_index + turn_count);
-	char dir = 'R';
 	
 	if (alignment > 4)
 	{
 		alignment = alignment-4;
 	}		
+	
 	//align coordinate frame & world frame
 	for (int k=0;k<alignment;k++)
 	{
-		turn(89, dir);
+		turn(89, 'R', 0);
 		delay(1000);
-		Serial.println('here');
 		turnSensorReset();
 	}
 }
 	
 
-void turn(int angle, char direction)
+void turn(int angle, char direction, bool moving)
 {
 	// function for turning arbritrary angle
 	// 
@@ -279,6 +292,7 @@ void turn(int angle, char direction)
 	
 	uint32_t tspeed; 
 	int dir;
+
 	
 	switch(direction)
 	{
@@ -292,23 +306,104 @@ void turn(int angle, char direction)
 	
 	uint16_t t1 = millis();
 	
-	while(millis()-t1 < 1000)
+	while(millis()-t1 < 2000)
 	{
 		  //Serial.println(((dir*((int32_t)(turnAngle))+angle*turnAngle1))/turnAngle1);
 		  //Serial.println(dir);
 		  turnSensorUpdate();
-		  tspeed = turn_control(angle);
+		  if (moving)
+		  {
+			  tspeed = turn_control_moving(angle);
+		  }
+		  else
+		  {
+				  tspeed = turn_control(angle);
+		  }
 		  motors.setSpeeds(-(dir)*tspeed, dir*tspeed);
+		  delay(1);
 		  
-		 lcd.gotoXY(0, 0);
+		lcd.gotoXY(0, 0);
 		lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
 	}
 	
 	motors.setSpeeds(0,0);
 }
+
+
+void forward(uint32_t objective, int theta)
+{
+	uint32_t distance=0;
+	uint32_t d1;
+	uint32_t d = 0;
+	uint32_t error = objective;
+    uint32_t countsLeft = encoders.getCountsAndResetLeft();
+    uint32_t countsRight = encoders.getCountsAndResetRight();
+    uint32_t counts = 0;
+	uint32_t maxSpeed = 200;
+
+     while (!distance_reached(counts, objective, &error, &distance))
+    {
+      d = distance - d1;
+  
+      countsLeft = encoders.getCountsLeft();
+      countsRight = encoders.getCountsRight();
+      counts = (countsRight + countsLeft)/2;
+      
+      turnSensorUpdate();
+      
+      lcd.clear();
+      lcd.print(error);
+      lcd.gotoXY(0, 1);
+
+
+      // Robot Dynamics function
+      move_robot(&error, theta, &maxSpeed);
+      
+      d1 = distance;
+    }
 	
+	motors.setSpeeds(0,0);
+}
 	
 
+void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_position)
+
+{
+	// int start_pos[2] = {4,3};
+	// int end_pos[2] = {0,1};
+
+	// int end_pos[2] = {4,3};
+	// int start_pos[2] = {0,1};
+
+	// Get x_dir and y_dir
+	int x_dir;
+	int y_dir;
+
+	int start_pos[2] = {4,3};
+	int end_pos[2] = {0,1};
+	int move_x = end_position[0] - start_position[0];
+	int move_y = end_position[1] - start_position[1];
+	int steps = abs(move_x) + abs(move_y);
+
+
+	x_dir = move_x/abs(move_x);
+	y_dir = move_y/abs(move_y);
+
+
+	// Loop to generate cells_to_visit to cover x dir
+	for (int i=0; i<x_dir*move_x; i++)
+	{
+		(*cells_to_visit)[i][0] = start_position[0] + (i+1)*x_dir;
+		(*cells_to_visit)[i][1] = start_position[1];
+	}
+
+	// Loop to generate cells_to_visit to cover y dir
+	for (int j=abs(move_x); j<abs(steps); j++)
+	{
+		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - x_dir*abs(move_x);
+		(*cells_to_visit)[j][0] = end_position[0];
+	}
+}
 
 
 
