@@ -6,11 +6,12 @@
 
 // Robot Dynamics Prototypes
 bool distance_reached(uint16_t counts, uint16_t objective, uint32_t* error, uint32_t* distance);
-uint32_t turn_control(int angle);
-uint32_t turn_control_moving(int angle);
-uint32_t speed_control(uint32_t* error);
-float vel(uint32_t t1, uint32_t t2, uint32_t deltad);
-void move_robot(uint32_t* error, int angle_desired, uint32_t* max_speed);
+int32_t turn_control(int angle);
+int32_t turn_control_moving(int angle);
+int32_t speed_control(int32_t error);
+int vel(uint32_t t1, uint32_t t2, uint32_t deltad);
+void move_robot(int32_t* error, int angle_desired, float vel, int16_t* max_speed);
+
 void align_frames(int *initial);
 void ir_sense(uint16_t* values);
 void ir_init();

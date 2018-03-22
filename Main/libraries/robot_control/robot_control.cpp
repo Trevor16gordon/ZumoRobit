@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <Zumo32U4.h>
-#include <TurnSensor.h>
+#include "TurnSensor.h"
 #include "robot_control.h"
 
 //function declarations
@@ -38,7 +38,7 @@ bool distance_reached(uint16_t counts, uint16_t objective, uint32_t* error, uint
 }
 
 
-uint32_t speed_control(uint32_t* error)
+int32_t speed_control(int32_t error)
 {
 	// function takes error to calculate speed
 	// 
@@ -48,17 +48,19 @@ uint32_t speed_control(uint32_t* error)
 	//			speed value
 	
 	
-	uint32_t motorSpeed;
+	int32_t motorSpeed;
 	int speedGain = 15;
 	
-	motorSpeed = (*error) * speedGain;
+	motorSpeed = (error) * speedGain;
+	
+	//Serial.println(motorSpeed);
 	
 	return motorSpeed;
 	
 }
 
 
-uint32_t turn_control(int angle)
+int32_t turn_control(int angle)
 {
 	// function for PD control of robot turning
 	// 
@@ -67,7 +69,7 @@ uint32_t turn_control(int angle)
 	//	output:
 	//			turnSpeed - value for motors from PD controller
 	
-	uint32_t turnSpeed = -((int32_t)(turnAngle + angle*turnAngle1)) / (turnAngle1 / 45);// - turnRate / 30;
+	int32_t turnSpeed = -((int32_t)(turnAngle + angle*turnAngle1)) / (turnAngle1 / 45);// - turnRate / 30;
 	//Serial.print(turnSpeed);
 	//turnSpeed = constrain(turnSpeed, (int16_t) -300, (int16_t) 300);
 
@@ -75,7 +77,7 @@ uint32_t turn_control(int angle)
 	return turnSpeed;
 }
 
-uint32_t turn_control_moving(int angle)
+int32_t turn_control_moving(int angle)
 {
 	// function for PD control of robot turning
 	// 
@@ -84,35 +86,44 @@ uint32_t turn_control_moving(int angle)
 	//	output:
 	//			turnSpeed - value for motors from PD controller
 	
-	uint32_t turnSpeed = -((int32_t)(turnAngle) - (int32_t)(angle*turnAngle1)) / (turnAngle1 / 45)- turnRate / 30;
+    int32_t error = (45*(int32_t)((((angle*turnAngle1)-(int32_t)turnAngle))/((int32_t)turnAngle1))-turnRate/15);
 	//Serial.println((((int32_t)turnAngle) - angle*turnAngle1)/turnAngle1);
 	
-	return turnSpeed;
+	return error;
 }
 
 
-float vel(uint32_t t1, uint32_t t2, uint32_t deltad)
+int vel(uint32_t t1, uint32_t t2, uint32_t deltad)
 {
-	uint32_t v;
-	v = deltad/(t2-t1);
+	int v;
+	v = 1000*deltad/(t2-t1);
 	
 	return v;
 }
 
 
-void move_robot(uint32_t* error, int angle_desired, uint32_t* max_speed)
+void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 {
 	
 	int leftMotor;
     int rightMotor;
 	
-	uint32_t e = *error;
+	int32_t e = *error;
+	
+	//Serial.println(e);
+	
+	lcd.gotoXY(0, 0);
+    lcd.print(vel);
+    lcd.print(F("   "));
+    delay(10);
 
+
+	
 	
 	if (*error < THRESHOLD)
 	{
 		
-		uint32_t t_speed = turn_control(angle_desired);
+		int32_t t_speed = turn_control(angle_desired);
 		motors.setSpeeds(-t_speed, t_speed);
 
 
@@ -120,21 +131,26 @@ void move_robot(uint32_t* error, int angle_desired, uint32_t* max_speed)
 	else
 	{	
 
-		uint32_t m_speed = speed_control(&e);
-		uint32_t t_speed = turn_control(angle_desired);
-		t_speed = 0;
+		int32_t m_speed = speed_control(e);
+		int32_t t_speed = turn_control_moving(angle_desired);
 		
-/* 		if(vel < 200){
-		  *max_speed = + 10; 
+		
+		if(vel < 200){
+		  *max_speed = *max_speed + 10; 
 		}
 		else if(vel > 400){
-		  *max_speed =- 10;
-		} */
+		  *max_speed = *max_speed - 10;
+		}
 		
-		constrain(m_speed, -100, 100);
-			
-		leftMotor = m_speed - t_speed; 
-		rightMotor = m_speed + t_speed;
+		
+		//m_speed = constrain(m_speed, -(*max_speed), *max_speed);
+		
+		//Serial.println(m_speed);
+		
+		leftMotor =  m_speed + t_speed; 
+		rightMotor = m_speed - t_speed;
+		
+		//Serial.println(leftMotor);
 	
 		motors.setSpeeds(leftMotor, rightMotor);
 	}
@@ -308,7 +324,7 @@ void turn(int angle, char direction, bool moving)
 	
 	uint16_t t1 = millis();
 	
-	while(millis()-t1 < 2000)
+	while(millis()-t1 < 1000)
 	{
 		  //Serial.println(((dir*((int32_t)(turnAngle))+angle*turnAngle1))/turnAngle1);
 		  //Serial.println(dir);
@@ -321,11 +337,11 @@ void turn(int angle, char direction, bool moving)
 		  {
 				  tspeed = turn_control(angle);
 		  }
-		  motors.setSpeeds(-(dir)*tspeed, dir*tspeed);
+		  motors.setSpeeds(-tspeed, tspeed);
 		  delay(1);
 		  
-		lcd.gotoXY(0, 0);
-		lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
+		//lcd.gotoXY(0, 0);
+		//lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
 	}
 	
 	motors.setSpeeds(0,0);
@@ -335,33 +351,49 @@ void turn(int angle, char direction, bool moving)
 void forward(uint32_t objective, int theta)
 {
 	uint32_t distance=0;
-	uint32_t d1;
-	uint32_t d = 0;
-	uint32_t error = objective;
+	uint32_t d1=0;
+	uint32_t d ;
+	int32_t error = objective;
     uint32_t countsLeft = encoders.getCountsAndResetLeft();
     uint32_t countsRight = encoders.getCountsAndResetRight();
     uint32_t counts = 0;
-	uint32_t maxSpeed = 200;
+	int16_t maxSpeed = 200;
+	
+	uint32_t t1 = 0;
+	int v;
 
      while (!distance_reached(counts, objective, &error, &distance))
     {
-      d = distance - d1;
-  
-      countsLeft = encoders.getCountsLeft();
-      countsRight = encoders.getCountsRight();
-      counts = (countsRight + countsLeft)/2;
-      
-      turnSensorUpdate();
-      
-      lcd.clear();
-      lcd.print(error);
-      lcd.gotoXY(0, 1);
+		  d = distance - d1;
+		  
+		  
+		 if (t1 < (millis()-100))
+		{
+			v = 1000*(d)/(millis()-t1);
+			t1 = millis();
+			
+		}
+		
+		lcd.gotoXY(0, 0);
+		lcd.print(v);
+		lcd.print(F("   "));
+		delay(10);
+		  
+	  
+		  countsLeft = encoders.getCountsLeft();
+		  countsRight = encoders.getCountsRight();
+		  counts = (countsRight + countsLeft)/2;
+		  
+		  turnSensorUpdate();
+		  
 
 
-      // Robot Dynamics function
-      move_robot(&error, theta, &maxSpeed);
-      
-      d1 = distance;
+
+		  // Robot Dynamics function
+		  move_robot(&error, theta, v, &maxSpeed);
+		  
+		  
+		  d1 = distance;
     }
 	
 	motors.setSpeeds(0,0);
