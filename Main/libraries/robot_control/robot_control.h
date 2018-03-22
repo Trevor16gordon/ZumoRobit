@@ -18,6 +18,10 @@ void ir_init();
 void turn(int angle, char direction, bool moving);
 void forward(uint32_t objective, int theta);
 void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_position);
+void line_sense_init();
+bool line_sense();
+void find_dot();
+
 
 
 // These objects must be defined in your sketch.
@@ -32,4 +36,5 @@ extern Zumo32U4LineSensors lineSensors;
 extern Zumo32U4ProximitySensors proxSensors;
 extern Zumo32U4LCD lcd;
 extern Zumo32U4Encoders encoders;
+//extern lineSensors;
 

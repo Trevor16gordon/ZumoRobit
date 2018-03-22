@@ -77,6 +77,7 @@ int32_t turn_control(int angle)
 	return turnSpeed;
 }
 
+
 int32_t turn_control_moving(int angle)
 {
 	// function for PD control of robot turning
@@ -112,10 +113,10 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 	
 	//Serial.println(e);
 	
-	lcd.gotoXY(0, 0);
+/* 	lcd.gotoXY(0, 0);
     lcd.print(vel);
     lcd.print(F("   "));
-    delay(10);
+    delay(10); */
 
 
 	
@@ -142,7 +143,7 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 		  *max_speed = *max_speed - 10;
 		}
 		
-		
+		//t_speed = constrain(t_speed, -200, 200);
 		//m_speed = constrain(m_speed, -(*max_speed), *max_speed);
 		
 		//Serial.println(m_speed);
@@ -153,6 +154,7 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 		//Serial.println(leftMotor);
 	
 		motors.setSpeeds(leftMotor, rightMotor);
+		
 	}
 }	
 
@@ -350,34 +352,41 @@ void turn(int angle, char direction, bool moving)
 
 void forward(uint32_t objective, int theta)
 {
+	int lastDisplayTime = 0;
 	uint32_t distance=0;
 	uint32_t d1=0;
-	uint32_t d ;
+	int32_t d ;
 	int32_t error = objective;
     uint32_t countsLeft = encoders.getCountsAndResetLeft();
     uint32_t countsRight = encoders.getCountsAndResetRight();
     uint32_t counts = 0;
-	int16_t maxSpeed = 200;
+	int16_t maxSpeed = 250;
 	
-	uint32_t t1 = 0;
+	int32_t t1 = 0;
 	int v;
 
      while (!distance_reached(counts, objective, &error, &distance))
     {
-		  d = distance - d1;
+		 d = distance - d1;
 		  
 		  
 		 if (t1 < (millis()-100))
 		{
 			v = 1000*(d)/(millis()-t1);
 			t1 = millis();
-			
+			d1 = distance;
+
 		}
 		
-		lcd.gotoXY(0, 0);
-		lcd.print(v);
-		lcd.print(F("   "));
-		delay(10);
+		if ((uint8_t)(millis() - lastDisplayTime) >= 100)
+		{
+			lastDisplayTime = millis();
+			lcd.clear();
+			lcd.print(error);
+			lcd.gotoXY(0, 1);
+			lcd.print((v));
+		 }
+		
 		  
 	  
 		  countsLeft = encoders.getCountsLeft();
@@ -393,15 +402,15 @@ void forward(uint32_t objective, int theta)
 		  move_robot(&error, theta, v, &maxSpeed);
 		  
 		  
-		  d1 = distance;
     }
+	
+	//turn(theta, 'L', 1);
 	
 	motors.setSpeeds(0,0);
 }
 	
 
 void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_position)
-
 {
 	// int start_pos[2] = {4,3};
 	// int end_pos[2] = {0,1};
@@ -440,8 +449,84 @@ void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_
 }
 
 
+void line_sense_init()
+{
+
+	lineSensors.initThreeSensors();
+	
+	ledYellow(1);
+	lcd.clear();
+	lcd.print(F("cal"));
+
+	for (uint16_t i = 0; i < 400; i++)
+	{
+		lcd.gotoXY(0, 1);
+		lcd.print(i);
+		lineSensors.calibrate();
+	}
+}
 
 
+bool line_sense()
+{
+
+	int lineSensorValues[5] = {0};
+
+	
+	bool state;
+	
+	lineSensors.readCalibrated(lineSensorValues);
+	
+	if ((lineSensorValues[2]) > 500)
+	{
+		state = 1;
+	}
+	else 
+	{
+		state = 0;
+	}
+	
+	return state;
+}
+
+
+void find_dot()
+{
+	uint16_t initial_distance = 250;
+	uint16_t distance = 500;
+	
+	while(line_sense() == 0)
+	{
+		// move 250
+		forward(250,0);
+		// turn 90
+		turn(90,"R",0);
+		// move initial_distance(2)
+		forward(initial_distance,90);
+		// turn 90
+		turn(90,"R",0);
+		// move distance(1)
+		forward(distance,180);
+		// turn 90
+		turn(90,"R",0);
+		// move distance(2)
+		forward(distance,270);
+		// turn 90
+		turn(90,"R",0);
+		// move distance(3)
+		forward(distance,0);
+		// turn 90
+		turn(90,"R",0);
+		// move initial_distance(3)
+		forward(initial_distance,90);
+		// turn -90
+		turn(90,"L",0);
+		
+		initial_distance = initial_distance + 250;
+		distance = distance + 500;
+		
+	}
+}
 
 
 
