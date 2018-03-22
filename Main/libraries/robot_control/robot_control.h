@@ -4,6 +4,7 @@
 #define COUNTS_FACTOR ((float) (2 * 3.14159 * RADIUS_MM / 1200))
 #define THRESHOLD ((int) 3)
 
+
 // Robot Dynamics Prototypes
 bool distance_reached(uint16_t counts, uint16_t objective, uint32_t* error, uint32_t* distance);
 uint32_t turn_control(int angle);
@@ -12,10 +13,12 @@ float vel(uint32_t t1, uint32_t t2, uint32_t deltad);
 void move_robot(uint32_t* error, int dir, uint32_t vel, uint32_t* max_speed);
 void ir_sense(uint16_t* values);
 void ir_init();
-
+void line_sense_init();
+bool line_sense();
 
 extern uint32_t turnAngle;
 extern int16_t turnRate;
+static uint16_t lineSensorValues[5] = { };
 
 // These objects must be defined in your sketch.
 extern Zumo32U4ButtonA buttonA;
@@ -25,3 +28,4 @@ extern Zumo32U4Motors motors;
 extern Zumo32U4LineSensors lineSensors;
 extern Zumo32U4ProximitySensors proxSensors;
 extern Zumo32U4LCD lcd;
+

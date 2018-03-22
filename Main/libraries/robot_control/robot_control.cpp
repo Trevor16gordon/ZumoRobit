@@ -147,13 +147,6 @@ void ir_sense(uint16_t* values)
 		values[1] = front;
 		values[2] = right;
 	}
-	  // static char buffer[80];
-  // sprintf(buffer, "%d %d %d\n",
-// &proxSensors,
-// front,
-// right
-  // );
-  // // Serial.print(buffer);
 	
 }
 
@@ -169,21 +162,85 @@ void ir_init()
 	
 	proxSensors.setBrightnessLevels(levels, sizeof(levels)/2);
 	
-	// ledYellow(1);
-	// lcd.clear();
-	// lcd.print(F("Line cal"));
-
-//	for (uint16_t i = 0; i < 400; i++)
-//	{
-//		lcd.gotoXY(0, 1);
-//		lcd.print(i);
-//		lineSensors.calibrate();
-//	}
-//
-//	ledYellow(0);
-//	lcd.clear();
 }
 
+bool line_sense()
+{
+
+	
+	bool state;
+	
+	lineSensors.readCalibrated(lineSensorValues);
+	
+	if ((lineSensorValues[2]) > 500)
+	{
+		state = 1;
+	}
+	else 
+	{
+		state = 0;
+	}
+	
+	return state;
+}
+
+void line_sense_init()
+{
+
+	lineSensors.initThreeSensors();
+	
+	ledYellow(1);
+	lcd.clear();
+	lcd.print(F("cal"));
+
+	for (uint16_t i = 0; i < 400; i++)
+	{
+		lcd.gotoXY(0, 1);
+		lcd.print(i);
+		lineSensors.calibrate();
+	}
+
+	ledYellow(0);
+	lcd.clear();
+}
+
+void find_dot()
+{
+	uint16_t initial_distance = 250;
+	uint16_t distance = 500;
+	
+	while(line_sense() == 0)
+	{
+		// move 250
+		forward(250,0);
+		// turn 90
+		turn(90,"R",0);
+		// move initial_distance(2)
+		forward(initial_distance,90);
+		// turn 90
+		turn(90,"R",0);
+		// move distance(1)
+		forward(distance,180);
+		// turn 90
+		turn(90,"R",0);
+		// move distance(2)
+		forward(distance,270);
+		// turn 90
+		turn(90,"R",0);
+		// move distance(3)
+		forward(distance,0);
+		// turn 90
+		turn(90,"R",0);
+		// move initial_distance(3)
+		forward(initial_distance,90);
+		// turn -90
+		turn(90,"L",0);
+		
+		initial_distance = initial_distance + 250;
+		distance = distance + 500;
+		
+	}
+}
 
 
 

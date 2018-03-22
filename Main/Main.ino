@@ -8,16 +8,19 @@ L3G gyro;
 Zumo32U4Motors motors;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
-uint16_t values[3] = {0};
-
+//uint16_t values[3] = {0};
+uint16_t state;
 
 void setup() {
-  
-  ir_init();
+ 
+  //ir_init();
+  line_sense_init();
 }
 
 void loop() {
-  ir_sense(values);
+
+  state = line_sense();
+  // ir_sense(values);
 
   printReadingsToSerial();
 }
@@ -25,10 +28,10 @@ void loop() {
 void printReadingsToSerial()
 {
   static char buffer[80];
-  sprintf(buffer, "%d %d %d\n",
-  values[0],
-	values[1],
-	values[2]
+  sprintf(buffer, "%d\n",
+  state
+	//values[1],
+	//values[2]
   );
   Serial.print(buffer);
 }
