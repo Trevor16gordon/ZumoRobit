@@ -10,7 +10,7 @@ Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
-int end_pos[2] = {5,5};
+int end_pos[2] = {2,5};
 int start_pos[2] = {0,0};
 int current_pos[2] = {0,0};
 uint16_t objective = 200;
@@ -74,6 +74,7 @@ void loop() {
       theta_desired = 0;
       dir = 'R';
       forward(objective, theta_desired);
+      delay(500);
       break;
     case 0:
     //Serial.println("case 0");
@@ -87,12 +88,13 @@ void loop() {
         theta_desired = +90;
         dir ='L';
 
-        //if (current_pos[0] == start_pos[0])
-        //{
+        if (current_pos[1] == start_pos[1])
+        {
           turn(90,dir,0);
-          delay(1000);
+          delay(500);
           turnSensorReset();
-        //}
+        }
+        forward(objective, 0);
 
         break;
         case 0:

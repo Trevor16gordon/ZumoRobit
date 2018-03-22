@@ -67,7 +67,9 @@ uint32_t turn_control(int angle)
 	//	output:
 	//			turnSpeed - value for motors from PD controller
 	
-	uint32_t turnSpeed = -((int32_t)(turnAngle + angle*turnAngle1)) / (turnAngle1 / 45) - turnRate / 30;
+	uint32_t turnSpeed = -((int32_t)(turnAngle + angle*turnAngle1)) / (turnAngle1 / 45);// - turnRate / 30;
+	//Serial.print(turnSpeed);
+	//turnSpeed = constrain(turnSpeed, (int16_t) -300, (int16_t) 300);
 
 	
 	return turnSpeed;
@@ -265,7 +267,7 @@ void align_frames(int *initial)
 	
 	int alignment = (max_index + turn_count);
 	
-	if (alignment > 4)
+	if (alignment > 3)
 	{
 		alignment = alignment-4;
 	}		
