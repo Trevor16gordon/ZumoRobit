@@ -109,15 +109,7 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 	int leftMotor;
     int rightMotor;
 	
-	int32_t e = *error;
-	
-	//Serial.println(e);
-	
-/* 	lcd.gotoXY(0, 0);
-    lcd.print(vel);
-    lcd.print(F("   "));
-    delay(10); */
-
+	int32_t e = *error;	
 
 	
 	
@@ -147,6 +139,10 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 		//m_speed = constrain(m_speed, -(*max_speed), *max_speed);
 		
 		//Serial.println(m_speed);
+		
+		t_speed = constrain(t_speed, -200, 200);
+		m_speed = constrain(m_speed, -200, 200);
+
 		
 		leftMotor =  m_speed + t_speed; 
 		rightMotor = m_speed - t_speed;
@@ -285,7 +281,7 @@ void align_frames(int *initial)
 	
 	int alignment = (max_index + turn_count);
 	
-	if (alignment > 3)
+	if (alignment > 4)
 	{
 		alignment = alignment-4;
 	}		
@@ -310,7 +306,7 @@ void turn(int angle, char direction, bool moving)
 	//	output:
 	//			NONE
 	
-	uint32_t tspeed; 
+	int32_t tspeed; 
 	int dir;
 
 	
@@ -339,6 +335,7 @@ void turn(int angle, char direction, bool moving)
 		  {
 				  tspeed = turn_control(angle);
 		  }
+		  tspeed = constrain(tspeed, -250, 250);
 		  motors.setSpeeds(-tspeed, tspeed);
 		  delay(1);
 		  
@@ -404,7 +401,6 @@ void forward(uint32_t objective, int theta)
 		  
     }
 	
-	//turn(theta, 'L', 1);
 	
 	motors.setSpeeds(0,0);
 }
@@ -454,9 +450,18 @@ void line_sense_init()
 
 	lineSensors.initThreeSensors();
 	
+
+	delay(100);
+	
+	lineSensors.calibrate();
+
+	
 	ledYellow(1);
 	lcd.clear();
 	lcd.print(F("cal"));
+	
+	motors.setSpeeds(40,40);
+
 
 	for (uint16_t i = 0; i < 400; i++)
 	{
@@ -464,20 +469,42 @@ void line_sense_init()
 		lcd.print(i);
 		lineSensors.calibrate();
 	}
+
+	
+	motors.setSpeeds(0,0);
+	
+	while (!buttonA.getSingleDebouncedRelease())
+  {
+    turnSensorUpdate();
+    lcd.gotoXY(0, 0);
+    lcd.print(String("A"));
+    lcd.print(F("   "));
+  }
+
 }
 
 
 bool line_sense()
 {
 
-	int lineSensorValues[5] = {0};
 
+	int lineSensorValues[5] = {0};
+	double avg = 0;
 	
 	bool state;
 	
-	lineSensors.readCalibrated(lineSensorValues);
+	for (int i=0;i<5; i++)
+	{
+		lineSensors.readCalibrated(lineSensorValues);
+		avg += lineSensorValues[2];
+	}
 	
-	if ((lineSensorValues[2]) > 500)
+	avg = avg/5;
+		
+	Serial.println(avg);
+	delay(50);
+	
+	if ((avg) < 500)
 	{
 		state = 1;
 	}
@@ -495,38 +522,15 @@ void find_dot()
 	uint16_t initial_distance = 250;
 	uint16_t distance = 500;
 	
-	while(line_sense() == 0)
-	{
-		// move 250
-		forward(250,0);
-		// turn 90
-		turn(90,"R",0);
-		// move initial_distance(2)
-		forward(initial_distance,90);
-		// turn 90
-		turn(90,"R",0);
-		// move distance(1)
-		forward(distance,180);
-		// turn 90
-		turn(90,"R",0);
-		// move distance(2)
-		forward(distance,270);
-		// turn 90
-		turn(90,"R",0);
-		// move distance(3)
-		forward(distance,0);
-		// turn 90
-		turn(90,"R",0);
-		// move initial_distance(3)
-		forward(initial_distance,90);
-		// turn -90
-		turn(90,"L",0);
+	motors.setSpeeds(100, 100);
+	
+	  while(line_sense()==0)
+	  {
+		delay(10);
+	  }
+
+	  motors.setSpeeds(0,0);
 		
-		initial_distance = initial_distance + 250;
-		distance = distance + 500;
-		
-	}
+	
 }
-
-
 

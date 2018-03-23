@@ -11,6 +11,10 @@ int32_t turn_control_moving(int angle);
 int32_t speed_control(int32_t error);
 int vel(uint32_t t1, uint32_t t2, uint32_t deltad);
 void move_robot(int32_t* error, int angle_desired, float vel, int16_t* max_speed);
+void line_sense_init();
+bool line_sense();
+void find_dot();
+
 
 void align_frames(int *initial);
 void ir_sense(uint16_t* values);
