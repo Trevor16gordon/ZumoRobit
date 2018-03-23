@@ -112,10 +112,10 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 	
 	//Serial.println(e);
 	
-	lcd.gotoXY(0, 0);
-    lcd.print(vel);
-    lcd.print(F("   "));
-    delay(10);
+	// lcd.gotoXY(0, 0);
+    // lcd.print(vel);
+    // lcd.print(F("   "));
+    // delay(10);
 
 
 	
@@ -146,6 +146,10 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 		//m_speed = constrain(m_speed, -(*max_speed), *max_speed);
 		
 		//Serial.println(m_speed);
+		
+		constrain(t_speed, -200, 200);
+		constrain(m_speed, -200, 200);
+
 		
 		leftMotor =  m_speed + t_speed; 
 		rightMotor = m_speed - t_speed;
@@ -308,7 +312,7 @@ void turn(int angle, char direction, bool moving)
 	//	output:
 	//			NONE
 	
-	uint32_t tspeed; 
+	int32_t tspeed; 
 	int dir;
 
 	
@@ -337,6 +341,7 @@ void turn(int angle, char direction, bool moving)
 		  {
 				  tspeed = turn_control(angle);
 		  }
+		  constrain(tspeed, -250, 250);
 		  motors.setSpeeds(-tspeed, tspeed);
 		  delay(1);
 		  
