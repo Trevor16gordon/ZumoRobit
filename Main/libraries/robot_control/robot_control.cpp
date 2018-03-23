@@ -283,7 +283,7 @@ void align_frames(int *initial)
 	
 	int alignment = (max_index + turn_count);
 	
-	if (alignment > 3)
+	if (alignment > 4)
 	{
 		alignment = alignment-4;
 	}		
@@ -396,6 +396,8 @@ void forward(uint32_t objective, int theta)
 		  d1 = distance;
     }
 	
+	//turn(90,'L', 1);
+	
 	motors.setSpeeds(0,0);
 }
 	
@@ -438,6 +440,92 @@ void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_
 		(*cells_to_visit)[j][0] = end_position[0];
 	}
 }
+
+
+void line_sense_init()
+{
+
+	lineSensors.initThreeSensors();
+	
+	delay(100);
+	
+	lineSensors.calibrate();
+
+	
+	ledYellow(1);
+	lcd.clear();
+	lcd.print(F("cal"));
+	
+	motors.setSpeeds(40,40);
+
+	for (uint16_t i = 0; i < 400; i++)
+	{
+		lcd.gotoXY(0, 1);
+		lcd.print(i);
+		lineSensors.calibrate();
+	}
+	
+	motors.setSpeeds(0,0);
+	
+	while (!buttonA.getSingleDebouncedRelease())
+  {
+    turnSensorUpdate();
+    lcd.gotoXY(0, 0);
+    lcd.print(String("A"));
+    lcd.print(F("   "));
+  }
+}
+
+
+bool line_sense()
+{
+
+	int lineSensorValues[5] = {0};
+	double avg = 0;
+	
+	bool state;
+	
+	for (int i=0;i<5; i++)
+	{
+		lineSensors.readCalibrated(lineSensorValues);
+		avg += lineSensorValues[2];
+	}
+	
+	avg = avg/5;
+		
+	Serial.println(avg);
+	delay(50);
+	
+	if ((avg) < 500)
+	{
+		state = 1;
+	}
+	else 
+	{
+		state = 0;
+	}
+	
+	return state;
+}
+
+
+void find_dot()
+{
+	uint16_t initial_distance = 250;
+	uint16_t distance = 500;
+	
+	motors.setSpeeds(100, 100);
+	
+	  while(line_sense()==0)
+	  {
+		delay(10);
+	  }
+
+	  motors.setSpeeds(0,0);
+		
+	
+}
+
 
 
 
