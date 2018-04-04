@@ -263,7 +263,7 @@ void align_frames(int *initial)
 		turn(89, 'R', 0);
 		
 		motors.setSpeeds(0,0);
-		delay(1000);
+		delay(200);
 		turnSensorReset();
 	}
 	
@@ -277,7 +277,7 @@ void align_frames(int *initial)
 		}
 	}
 	
-	delay(1000);
+	delay(500);
 	
 	int alignment = (max_index + turn_count);
 	
@@ -290,7 +290,7 @@ void align_frames(int *initial)
 	for (int k=0;k<alignment;k++)
 	{
 		turn(89, 'R', 0);
-		delay(1000);
+		delay(200);
 		turnSensorReset();
 	}
 }
@@ -473,13 +473,13 @@ void line_sense_init()
 	
 	motors.setSpeeds(0,0);
 	
-	while (!buttonA.getSingleDebouncedRelease())
-  {
-    turnSensorUpdate();
-    lcd.gotoXY(0, 0);
-    lcd.print(String("A"));
-    lcd.print(F("   "));
-  }
+	// while (!buttonA.getSingleDebouncedRelease())
+ //  {
+ //    turnSensorUpdate();
+ //    lcd.gotoXY(0, 0);
+ //    lcd.print(String("A"));
+ //    lcd.print(F("   "));
+ //  }
 
 }
 
@@ -504,7 +504,7 @@ bool line_sense()
 	Serial.println(avg);
 	delay(50);
 	
-	if ((avg) < 500)
+	if ((avg) > 500)
 	{
 		state = 1;
 	}
