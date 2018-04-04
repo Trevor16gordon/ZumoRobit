@@ -97,7 +97,7 @@ void loop() {
     int y_move = 0;
     bool obstacle = check_for_obstacle();
     
-    if (obstacle)
+    if (obstacle||off_main_path)
     {
       lcd.gotoXY(0, 0);
       lcd.print(String("**Wall**"));
@@ -112,10 +112,40 @@ void loop() {
         lcd.gotoXY(0, 1);
         lcd.print(String(y_move));
         lcd.print(F("   "));
-        delay(10000);
+        delay(1000);
       
       current_pos[0] = current_pos[0]+x_move;
       current_pos[1] = current_pos[1]+y_move;
+
+        // Loop through initial path and see if we are back on track
+       for (int jj=0; i<7; i++)
+       {
+        if (current_pos[0]==cells_to_visit_add[jj][0] && current_pos[1]==cells_to_visit_add[jj][0])
+        {
+              x_move = cells_to_visit[jj][0] - current_pos[0];
+              y_move = cells_to_visit[jj][1] - current_pos[1];
+          
+              current_pos[0] = cells_to_visit[i][0];
+              current_pos[1] = cells_to_visit[i][1];
+              i = jj +1;
+              lcd.clear();
+              lcd.gotoXY(0, 0);
+              lcd.print(String("HOLY"));
+              lcd.print(F("   "));
+              lcd.gotoXY(0, 1);
+              lcd.print(String("SHIT"));
+              lcd.print(F("   "));
+              delay(5000);
+              off_main_path = false;
+              break;
+              
+        }
+        else
+        {
+          off_main_path = true;
+        }
+       }
+      
       delay(200);
     }
     else
