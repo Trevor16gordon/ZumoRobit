@@ -11,11 +11,11 @@ Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
+int start_pos[2] = {2,0};
+int current_pos[2] = {2,0};
+int end_pos[2] = {4,6};
 
-int end_pos[2] = {4,3};
-int start_pos[2] = {0,0};
-int current_pos[2] = {0,0};
-uint16_t objective = 200;
+uint16_t objective = 210;
 int theta_desired;
 
 int maxTurnSpeed = 200;
@@ -95,56 +95,29 @@ void loop() {
   {
     int x_move = 0;
     int y_move = 0;
-    bool obstacle = check_for_obstacle();
     
-    if (obstacle||off_main_path)
+    if (off_main_path)
     {
+      
       lcd.gotoXY(0, 0);
-      lcd.print(String("**Wall**"));
+      lcd.print(String("**Off Path**"));
       lcd.print(F("   "));
-      delay(1000);
+      delay(500);
       getNextCellBug(x_move, y_move);
 
-        lcd.clear();
-        lcd.gotoXY(0, 0);
-        lcd.print(String(x_move));
-        lcd.print(F("   "));
-        lcd.gotoXY(0, 1);
-        lcd.print(String(y_move));
-        lcd.print(F("   "));
-        delay(1000);
+//        lcd.clear();
+//        lcd.gotoXY(0, 0);
+//        lcd.print(String(x_move));
+//        lcd.print(F("   "));
+//        lcd.gotoXY(0, 1);
+//        lcd.print(String(y_move));
+//        lcd.print(F("   "));
+//        delay(1000);
       
       current_pos[0] = current_pos[0]+x_move;
       current_pos[1] = current_pos[1]+y_move;
 
-        // Loop through initial path and see if we are back on track
-       for (int jj=0; i<7; i++)
-       {
-        if (current_pos[0]==cells_to_visit_add[jj][0] && current_pos[1]==cells_to_visit_add[jj][0])
-        {
-              x_move = cells_to_visit[jj][0] - current_pos[0];
-              y_move = cells_to_visit[jj][1] - current_pos[1];
-          
-              current_pos[0] = cells_to_visit[i][0];
-              current_pos[1] = cells_to_visit[i][1];
-              i = jj +1;
-              lcd.clear();
-              lcd.gotoXY(0, 0);
-              lcd.print(String("HOLY"));
-              lcd.print(F("   "));
-              lcd.gotoXY(0, 1);
-              lcd.print(String("SHIT"));
-              lcd.print(F("   "));
-              delay(5000);
-              off_main_path = false;
-              break;
-              
-        }
-        else
-        {
-          off_main_path = true;
-        }
-       }
+        
       
       delay(200);
     }
@@ -169,25 +142,19 @@ void loop() {
     switch (x_move){
     case -1:
       theta_desired = 180;
-      dir = 'L';
       break;
     case 1:
       theta_desired = 0;
-      dir = 'R';
       break;
     case 0:
-    //Serial.println("case 0");
-      
       switch(y_move){
         case -1:
         theta_desired = 270;
-        dir = 'R';
         break;
         case 1:
         theta_desired = +90;
-        dir ='L';
         break;
-        case 0:
+        default:
         theta_desired = 69;
         while (true)
         {
@@ -198,13 +165,84 @@ void loop() {
         break;
       }
       break;
+      default:
+      while (true)
+        {
+          lcd.gotoXY(0, 0);
+          lcd.print(String("default"));
+          lcd.print(F("   "));
+          lcd.gotoXY(0, 1);
+          lcd.print(String(x_move));
+          lcd.print(F("   "));
+        }
+      break;
     }
 
     turn(theta_desired, dir, 1);
     delay(100);
+
+    bool obstacle = check_for_obstacle();
+
+    if (!obstacle)
+    {
     drive(objective, theta_desired);
+    }
+    else
+    {
+      lcd.gotoXY(0, 0);
+      lcd.print(String("**Wall**"));
+      lcd.print(F("   "));
+      delay(500);
+      current_pos[0] = current_pos[0]-x_move;
+      current_pos[1] = current_pos[1]-y_move;
+      off_main_path = true;
+      continue;
+    }
     delay(100);
-      
+
+
+    // After moving if we were off track, lets check if were back on track
+    if (off_main_path)
+    {
+    // Loop through initial path and see if we are back on track
+       for (int jj=i; jj<20; jj++)
+       {
+        // Uncomment to print cell checking
+//        lcd.clear();
+//        lcd.gotoXY(0, 0);
+//        char bufferval[8];
+//        snprintf(bufferval,sizeof(bufferval), "? (%i,%i)", cells_to_visit[jj][0], cells_to_visit[jj][1]);
+//        lcd.print(bufferval);
+//        lcd.print(F("   "));
+//        lcd.gotoXY(0, 1);
+//        char bufferval2[8];
+//        snprintf(bufferval2,sizeof(bufferval2), "@ (%i,%i)", current_pos[0], current_pos[1]);
+//        lcd.print(bufferval2);
+//        lcd.print(F("   "));
+//        delay(100);
+        
+        if (current_pos[0]==cells_to_visit[jj][0] && current_pos[1]==cells_to_visit[jj][1])
+        {
+              i = jj +1;
+              lcd.clear();
+              lcd.gotoXY(0, 0);
+              lcd.print(String("HOLY"));
+              lcd.print(F("   "));
+              lcd.gotoXY(0, 1);
+              lcd.print(String("SHIT"));
+              lcd.print(F("   "));
+              delay(500);
+              lcd.clear();
+              off_main_path = false;
+              break;
+              
+        }
+        else
+        {
+          off_main_path = true;
+        }
+       }
+    }
 
   }
 
@@ -290,7 +328,7 @@ bool check_for_obstacle()
     lcd.print(String(values[1]));
     lcd.print(F("   "));
 
-  if (values[1] > 10)
+  if (values[1] > 13)
   {
     return true;
   }
@@ -324,9 +362,13 @@ void getNextCellBug(int &xdiff, int &ydiff)
     {
      case 0 ... 45:
      current_theta_rounded = 0;
+     turnSensorReset();
+     delay(200);
      break;
      case 315 ... 359:
      current_theta_rounded = 0;
+     turnSensorReset();
+     delay(200);
      break;
      case 46 ... 135:
      current_theta_rounded = 90;
@@ -348,44 +390,32 @@ void getNextCellBug(int &xdiff, int &ydiff)
 
   uint16_t values[3] = {0};
   ir_sense(values);
-  front = (values[1] > 10);
-  right = (values[2] > 10);
-  left = (values[3] > 10);
   lcd.clear();
 
-  for (int i=0; i<4; i++)
+  for (int i=0; i<10; i++)
   {
    ir_sense(values);
     
-  front = front||(values[1] > 12);
-  right = right||(values[2] > 5);
-  left = left||(values[3] > 5);
-  delay(200);
+  front = front||(values[1] > 13);
+  right = right||(values[2] > 6);
+  left = left||(values[3] > 6);
+  delay(50);
   }
 
-//  while (true)
-//  {
-//  ir_sense(values);
-//  front = (values[1] > 10);
-//  right = (values[2] > 10);
-//  left = (values[3] > 10);
-//
-  lcd.gotoXY(0, 0);
-  lcd.print(front);
-//  lcd.print(F("   "));
-  lcd.gotoXY(0, 1);
-  lcd.print(left);
-//  lcd.print(F("   "));
-  delay(1000);
-//  }
+//  lcd.gotoXY(0, 0);
+//  lcd.print(front);
+//  lcd.gotoXY(0, 1);
+//  lcd.print(left);
+//  delay(1000);
+
 
   // Case, wall in front and no walls beside
   // Next cell will be to the left
-  if ( (front)&(!left) )
+  if ( (front) )
   {
     lcd.gotoXY(0, 0);
     lcd.print(String("WL_FRNT"));
-    delay(1000);
+    delay(200);
     switch (current_theta_rounded)
     {
      case 0:
@@ -409,7 +439,7 @@ void getNextCellBug(int &xdiff, int &ydiff)
   {
     lcd.gotoXY(0, 0);
     lcd.print(String("WL_NONE"));
-    delay(1000);
+    delay(200);
     switch (current_theta_rounded)
     {
      case 0:
@@ -433,7 +463,7 @@ void getNextCellBug(int &xdiff, int &ydiff)
     {
     lcd.gotoXY(0, 0);
     lcd.print(String("WL_RGHT"));
-    delay(1000);
+    delay(200);
     switch (current_theta_rounded)
     {
      case 0:
@@ -449,6 +479,23 @@ void getNextCellBug(int &xdiff, int &ydiff)
      ydiff = -1;
      break;
    }
+ }
+
+ else
+ {
+
+  while (true)
+  {
+      lcd.clear();
+      lcd.gotoXY(0, 0);
+      lcd.print(String("Unkown"));
+      lcd.print(F("   "));
+      lcd.gotoXY(0, 1);
+      lcd.print(String("Wall"));
+      lcd.print(F("   "));
+      delay(5000);
+  }
+  
  }
 //  lcd.clear();
 //  lcd.gotoXY(0, 0);

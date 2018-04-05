@@ -439,7 +439,7 @@ void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_
 	// Loop to generate cells_to_visit to cover y dir
 	for (int j=abs(move_x); j<abs(steps); j++)
 	{
-		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - x_dir*abs(move_x);
+		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - y_dir*abs(move_x);
 		(*cells_to_visit)[j][0] = end_position[0];
 	}
 }
