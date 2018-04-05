@@ -5,12 +5,11 @@
 #define THRESHOLD ((int) 3)
 
 // Robot Dynamics Prototypes
-bool distance_reached(uint16_t counts, uint16_t objective, uint32_t* error, uint32_t* distance);
+bool distance_reached(int32_t counts, uint16_t objective, uint32_t* error, uint32_t* distance);
 int32_t turn_control(int angle);
 int32_t turn_control_moving(int angle);
 int32_t speed_control(int32_t error);
-int vel(uint32_t t1, uint32_t t2, uint32_t deltad);
-void move_robot(int32_t* error, int angle_desired, float vel, int16_t* max_speed);
+void move_robot(int32_t* error, int angle_desired, int16_t vel, int* max_speed);
 void line_sense_init();
 bool line_sense();
 void find_dot();

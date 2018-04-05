@@ -5,7 +5,7 @@
 
 //function declarations
 
-bool distance_reached(uint16_t counts, uint16_t objective, uint32_t* error, uint32_t* distance)
+bool distance_reached(int32_t counts, uint16_t objective, uint32_t* error, uint32_t* distance)
 {
 	// function takes encoder count to quantify distance travelled
 	// 
@@ -94,16 +94,7 @@ int32_t turn_control_moving(int angle)
 }
 
 
-int vel(uint32_t t1, uint32_t t2, uint32_t deltad)
-{
-	int v;
-	v = 1000*deltad/(t2-t1);
-	
-	return v;
-}
-
-
-void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
+void move_robot(int32_t* error, int angle_desired, int16_t vel, int* max_speed)
 {
 	
 	int leftMotor;
@@ -128,26 +119,13 @@ void move_robot(int32_t* error, int angle_desired, int vel, int16_t* max_speed)
 		int32_t t_speed = turn_control_moving(angle_desired);
 		
 		
-		if(vel < 200){
-		  *max_speed = *max_speed + 10; 
-		}
-		else if(vel > 400){
-		  *max_speed = *max_speed - 10;
-		}
-		
-		//t_speed = constrain(t_speed, -200, 200);
-		//m_speed = constrain(m_speed, -(*max_speed), *max_speed);
-		
-		//Serial.println(m_speed);
-		
 		t_speed = constrain(t_speed, -200, 200);
-		m_speed = constrain(m_speed, -200, 200);
+		m_speed = constrain(m_speed, -(*max_speed), *max_speed);
 
 		
 		leftMotor =  m_speed + t_speed; 
 		rightMotor = m_speed - t_speed;
 		
-		//Serial.println(leftMotor);
 	
 		motors.setSpeeds(leftMotor, rightMotor);
 		
@@ -230,21 +208,32 @@ void align_frames(int *initial)
 	uint32_t m_speed = 100;
 	
 	// determine # of 90degree turns to rotate clockwise after max detect
+	//upper left
 	if ((initial[0] < 5)&&(initial[1] > 4))
 	{
 		turn_count = 1;
+		Serial.println(String("Upper Left"));
 	}
+	//upper right quadrant
 	else if ((initial[0] > 4)&&(initial[1] > 4))
 	{
 		turn_count = 0;
+		Serial.println(String("Upper Right"));
+
 	}
+	// lower left quadrant
 	else if ((initial[0] < 5)&&(initial[1] < 5))
 	{
 		turn_count = 2;
+		Serial.println(String("Lower Left"));
+
 	}
+	// lower right quadrant
 	else
 	{
 		turn_count = 3;
+		Serial.println(String("Lower Right"));
+
 	}
 	
 	turnSensorReset();
@@ -281,10 +270,18 @@ void align_frames(int *initial)
 	
 	int alignment = (max_index + turn_count);
 	
+	Serial.println(turn_count);
+	Serial.println(max_index);
+	
+	
 	if (alignment > 4)
 	{
 		alignment = alignment-4;
-	}		
+	}	
+
+	Serial.println(turn_count);
+	Serial.println(max_index);
+
 	
 	//align coordinate frame & world frame
 	for (int k=0;k<alignment;k++)
@@ -307,6 +304,7 @@ void turn(int angle, char direction, bool moving)
 	//			NONE
 	
 	int32_t tspeed; 
+	
 	int dir;
 
 	
@@ -354,26 +352,37 @@ void forward(uint32_t objective, int theta)
 	uint32_t d1=0;
 	int32_t d ;
 	int32_t error = objective;
-    uint32_t countsLeft = encoders.getCountsAndResetLeft();
-    uint32_t countsRight = encoders.getCountsAndResetRight();
-    uint32_t counts = 0;
-	int16_t maxSpeed = 250;
+    int32_t countsLeft = encoders.getCountsAndResetLeft();
+    int32_t countsRight = encoders.getCountsAndResetRight();
+    int32_t counts = 0;
+	int maxSpeed = 250;
 	
-	int32_t t1 = 0;
-	int v;
+	int t1 = 0;
+	int16_t v;
 
-     while (!distance_reached(counts, objective, &error, &distance))
+    while (!distance_reached(counts, objective, &error, &distance))
     {
-		 d = distance - d1;
 		  
-		  
-		 if (t1 < (millis()-100))
+
+		if ((t1 < (millis() - 100))) 
 		{
-			v = 1000*(d)/(millis()-t1);
+			
+			d = distance - d1;
+
+			v = d * 1000 / (millis() - t1);
+			
+			if (v < 200) 
+			{
+				maxSpeed = maxSpeed + 10;
+			}
+			else if (v > 400) 
+			{
+				maxSpeed = maxSpeed - 10;
+			}
 			t1 = millis();
 			d1 = distance;
-
 		}
+		
 		
 		if ((uint8_t)(millis() - lastDisplayTime) >= 100)
 		{
@@ -439,7 +448,7 @@ void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_
 	// Loop to generate cells_to_visit to cover y dir
 	for (int j=abs(move_x); j<abs(steps); j++)
 	{
-		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - x_dir*abs(move_x);
+		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - y_dir*abs(move_x);
 		(*cells_to_visit)[j][0] = end_position[0];
 	}
 }
@@ -504,7 +513,7 @@ bool line_sense()
 	Serial.println(avg);
 	delay(50);
 	
-	if ((avg) < 500)
+	if ((avg) > 500)
 	{
 		state = 1;
 	}

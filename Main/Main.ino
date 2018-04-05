@@ -12,9 +12,9 @@ Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
 
-int end_pos[2] = {4,3};
-int start_pos[2] = {0,0};
-int current_pos[2] = {0,0};
+int end_pos[2] = {0,2};
+int start_pos[2] = {5,0};
+int current_pos[2] = {5,0};
 uint16_t objective = 200;
 int theta_desired;
 
@@ -41,10 +41,10 @@ void setup() {
 
   // after being placed fetch best estimate of location (uses kevins IR function)
   //runs once
-
-  // determine array of cells to visit on our way to finish
-
   line_sense_init();
+  // determine array of cells to visit on our way to finish
+  ir_init();
+  
   motors.setSpeeds(0,0);
   delay(2000);
 
@@ -79,7 +79,8 @@ void loop() {
     int y_move = cells_to_visit[i][1] - current_pos[1];
 
     // Figure out whether we need to turn
-    switch (x_move){
+    switch (x_move)
+    {
     case -1:
       theta_desired = 180;
       dir = 'L';
@@ -88,10 +89,9 @@ void loop() {
       theta_desired = 0;
       dir = 'R';
       break;
-    case 0:
-    //Serial.println("case 0");
-      
-      switch(y_move){
+    case 0: 
+      switch(y_move)
+      {
         case -1:
         theta_desired = 270;
         dir = 'R';
@@ -99,7 +99,6 @@ void loop() {
         case 1:
         theta_desired = +90;
         dir ='L';
-
         break;
         case 0:
         theta_desired = 69;
