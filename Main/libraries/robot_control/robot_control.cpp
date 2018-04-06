@@ -263,7 +263,7 @@ void align_frames(int *initial)
 		turn(89, 'R', 0);
 		
 		motors.setSpeeds(0,0);
-		delay(200);
+		delay(1000);
 		turnSensorReset();
 	}
 	
@@ -309,17 +309,7 @@ void turn(int angle, char direction, bool moving)
 	int32_t tspeed; 
 	int dir;
 
-	
-	switch(direction)
-	{
-		case 'L':
-			dir = -1;
-			break;
-		case 'R':
-			dir = 1;
-			break;
-	}
-	
+
 	uint16_t t1 = millis();
 	
 	while(millis()-t1 < 1000)
@@ -342,6 +332,15 @@ void turn(int angle, char direction, bool moving)
 		//lcd.gotoXY(0, 0);
 		//lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
 	}
+	int turn_angle_error = angle-turnAngle/turnAngle1;
+	  lcd.clear();
+      lcd.gotoXY(0, 0);
+      lcd.print(String("TDONE"));
+      lcd.print(F("   "));
+      lcd.gotoXY(0, 1);
+      lcd.print(String(turn_angle_error));
+      lcd.print(F("   "));
+      delay(500);
 	
 	motors.setSpeeds(0,0);
 }

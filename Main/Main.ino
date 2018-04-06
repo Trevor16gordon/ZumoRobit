@@ -11,9 +11,9 @@ Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
-int start_pos[2] = {2,0};
-int current_pos[2] = {2,0};
-int end_pos[2] = {4,6};
+int start_pos[2] = {6,1};
+int current_pos[2] = {6,1};
+int end_pos[2] = {5,6};
 
 uint16_t objective = 210;
 int theta_desired;
@@ -90,6 +90,7 @@ void loop() {
   int i = 0;
   int cell_path_indexer = 0;
   bool off_main_path = false;
+  String bug_dir = "undecided";
   
   while (!(current_pos[0]==end_pos[0] && current_pos[1]==end_pos[1]))
   {
@@ -100,10 +101,10 @@ void loop() {
     {
       
       lcd.gotoXY(0, 0);
-      lcd.print(String("**Off Path**"));
+      lcd.print(String("*OffPath*"));
       lcd.print(F("   "));
       delay(500);
-      getNextCellBug(x_move, y_move);
+      getNextCellBug(x_move, y_move, bug_dir);
 
 //        lcd.clear();
 //        lcd.gotoXY(0, 0);
@@ -185,12 +186,14 @@ void loop() {
 
     if (!obstacle)
     {
+    turn(theta_desired, dir, 1);
+    delay(100);
     drive(objective, theta_desired);
     }
     else
     {
       lcd.gotoXY(0, 0);
-      lcd.print(String("**Wall**"));
+      lcd.print(String("*Wall*"));
       lcd.print(F("   "));
       delay(500);
       current_pos[0] = current_pos[0]-x_move;
@@ -234,6 +237,7 @@ void loop() {
               delay(500);
               lcd.clear();
               off_main_path = false;
+              bug_dir == "undecided";
               break;
               
         }
@@ -251,12 +255,37 @@ void loop() {
 
   //find_dot();
 
-  while (1){}
+  while (1){
+              lcd.clear();
+              lcd.gotoXY(0, 0);
+              lcd.print(String("GOAL"));
+              lcd.print(F("   "));
+              lcd.gotoXY(0, 1);
+              lcd.print(String(":)"));
+              lcd.print(F("   "));
+              delay(500);
+    }
 }
 
 
 void drive(uint16_t objective, int16_t angle)
 {
+
+    while(abs(angle - turnAngle/turnAngle1) > 10 && abs(angle - turnAngle/turnAngle1) < 355)
+    {
+        lcd.clear();
+        lcd.gotoXY(0, 0);
+        lcd.print(String("SELF"));
+        lcd.print(F("   "));
+        lcd.gotoXY(0, 1);
+        lcd.print(String("DSTRCT"));
+        lcd.print(F("   "));
+        delay(500);
+        turn(angle, "L", 1);
+        turnSensorUpdate();
+    }
+    
+
   while ( error > 2) {
 
     int leftMotor;
@@ -328,7 +357,7 @@ bool check_for_obstacle()
     lcd.print(String(values[1]));
     lcd.print(F("   "));
 
-  if (values[1] > 13)
+  if (values[1] > 14)
   {
     return true;
   }
@@ -348,7 +377,7 @@ bool check_for_obstacle()
 
 }
 
-void getNextCellBug(int &xdiff, int &ydiff)
+void getNextCellBug(int &xdiff, int &ydiff, String &bug_dir)
 {
 
 
@@ -396,9 +425,9 @@ void getNextCellBug(int &xdiff, int &ydiff)
   {
    ir_sense(values);
     
-  front = front||(values[1] > 13);
-  right = right||(values[2] > 6);
-  left = left||(values[3] > 6);
+  front = front||(values[1] > 14);
+  right = right||(values[2] > 14);
+  left = left||(values[0] > 14);
   delay(50);
   }
 
@@ -411,11 +440,13 @@ void getNextCellBug(int &xdiff, int &ydiff)
 
   // Case, wall in front and no walls beside
   // Next cell will be to the left
-  if ( (front) )
+  if ( (front&&(right||(bug_dir == "undecided"))) )
   {
+    bug_dir = "left";
     lcd.gotoXY(0, 0);
     lcd.print(String("WL_FRNT"));
     delay(200);
+
     switch (current_theta_rounded)
     {
      case 0:
@@ -433,12 +464,12 @@ void getNextCellBug(int &xdiff, int &ydiff)
    }
  }
 
-  // Case, we don’t sense any walls anymore
+  // Case, we don’t sense any walls to right
   // Next cell will be to the right
-  else if ( (!right)&(!front) )
+  else if ( (!right)&&(bug_dir == "left") )
   {
     lcd.gotoXY(0, 0);
-    lcd.print(String("WL_NONE"));
+    lcd.print(String("RGHT_OPEN"));
     delay(200);
     switch (current_theta_rounded)
     {
@@ -459,7 +490,7 @@ void getNextCellBug(int &xdiff, int &ydiff)
 
   // Case, we see the right wall still but no front
   // Next cell will be forward
-  else if ( (right)&(!front) )
+  else if ( (right)&(!front)&(bug_dir=="left"))
     {
     lcd.gotoXY(0, 0);
     lcd.print(String("WL_RGHT"));
