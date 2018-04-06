@@ -4,6 +4,9 @@
 #include <TurnSensor.h>
 
 Zumo32U4ButtonA buttonA;
+Zumo32U4ButtonB buttonB;
+Zumo32U4ButtonC buttonC;
+
 Zumo32U4LCD lcd;
 L3G gyro;
 Zumo32U4Motors motors;
@@ -12,9 +15,9 @@ Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
 
-int start_pos[2] = {6,1};
-int current_pos[2] = {6,1};
-int end_pos[2] = {5,6};
+int start_pos[2] = {0};
+int current_pos[2] = {0};
+int end_pos[2] = {0};
 
 
 uint16_t objective = 210;
@@ -32,11 +35,22 @@ int maxSpeed = 200;
 int error = 10000;
 
 
-
-//int values = {0};
-
-
 void setup() {
+
+  enter_start(start_pos);
+
+  delay(500);
+  lcd.clear();
+
+  enter_start(end_pos);
+
+  delay(500);
+  lcd.clear();
+  
+  for(int i=0; i<2; i++)
+  {
+    current_pos[i] = start_pos[i];
+  }
 
   turnSensorSetup(); // intialize Gyro
   delay(500);
@@ -47,40 +61,17 @@ void setup() {
 
   ir_init();
   //line_sense_init();
-
-  motors.setSpeeds(0,0);
   delay(200);
 
   turnSensorReset(); // Reset Orientation to zero
 
-
-    while (!buttonA.getSingleDebouncedRelease())
-  {
-    turnSensorUpdate();
-    lcd.gotoXY(0, 0);
-    lcd.print(String("Wait4Button"));
-    lcd.print(F("   "));
-  }
-
-
-//  while (true)
-//  {
-//  //check_for_obstacle();
-//  getNextCellBug(0, 0);
-//  delay(100);
-//  }
-
   align2(start_pos);
   
   Serial.begin(9600);
-  
-
-  //align_frames(start_pos);
 }
 
 void loop() {
   
-
   int cells_to_visit[20][2];
   int (*cells_to_visit_add)[20][2] = &cells_to_visit;
   getCellsToVist(cells_to_visit_add, start_pos, end_pos);
@@ -88,9 +79,6 @@ void loop() {
 
   char dir;
  // int cells_to_visit[20][2] = {{1,0},{2,0},{2,1},{2,2}, {2,3}, {2,4}};
-
-
-  // forward
 
   int i = 0;
   int cell_path_indexer = 0;
@@ -125,7 +113,7 @@ void loop() {
 
         
       
-      delay(200);
+    delay(200);
     }
     else
     {

@@ -792,16 +792,3 @@ void enter_start(int *start)
 }
 	
 
-	
-	
-
-
-
-
-
-
-
-
-
-
->>>>>>> MITCHELL_WIP
