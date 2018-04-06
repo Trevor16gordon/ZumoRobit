@@ -266,7 +266,7 @@ void align_frames(int *initial)
 		}
 	}
 	
-	delay(1000);
+	delay(500);
 	
 	int alignment = (max_index + turn_count);
 	
@@ -287,7 +287,7 @@ void align_frames(int *initial)
 	for (int k=0;k<alignment;k++)
 	{
 		turn(89, 'R', 0);
-		delay(1000);
+		delay(200);
 		turnSensorReset();
 	}
 }
@@ -307,17 +307,7 @@ void turn(int angle, char direction, bool moving)
 	
 	int dir;
 
-	
-	switch(direction)
-	{
-		case 'L':
-			dir = -1;
-			break;
-		case 'R':
-			dir = 1;
-			break;
-	}
-	
+
 	uint16_t t1 = millis();
 	
 	while(millis()-t1 < 1000)
@@ -340,6 +330,15 @@ void turn(int angle, char direction, bool moving)
 		//lcd.gotoXY(0, 0);
 		//lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
 	}
+	int turn_angle_error = angle-turnAngle/turnAngle1;
+	  lcd.clear();
+      lcd.gotoXY(0, 0);
+      lcd.print(String("TDONE"));
+      lcd.print(F("   "));
+      lcd.gotoXY(0, 1);
+      lcd.print(String(turn_angle_error));
+      lcd.print(F("   "));
+      delay(500);
 	
 	motors.setSpeeds(0,0);
 }
@@ -482,13 +481,13 @@ void line_sense_init()
 	
 	motors.setSpeeds(0,0);
 	
-	while (!buttonA.getSingleDebouncedRelease())
-  {
-    turnSensorUpdate();
-    lcd.gotoXY(0, 0);
-    lcd.print(String("A"));
-    lcd.print(F("   "));
-  }
+	// while (!buttonA.getSingleDebouncedRelease())
+ //  {
+ //    turnSensorUpdate();
+ //    lcd.gotoXY(0, 0);
+ //    lcd.print(String("A"));
+ //    lcd.print(F("   "));
+ //  }
 
 }
 
