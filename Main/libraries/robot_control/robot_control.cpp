@@ -679,8 +679,107 @@ void align2(int* initial)
 		
 }
 
+void turn_control_enc(int desired, int angle)
+{	
+
+	int countsLeft = encoders.getCountsLeft();
+	int countsRight = encoders.getCountsRight();
+	
+	int leftEnc_error;
+	int rightEnc_error;
+	
+	double leftSpeed;
+	double rightSpeed;
+	double gyroError;
+	
+	leftEnc_error = -desired - countsLeft;
+	rightEnc_error = +desired - countsRight;
+	
+	turnSensorUpdate();
+	
+    gyroError = 25*((int32_t)((((angle*turnAngle1)-(int32_t)turnAngle))/((int32_t)turnAngle1)));
 	
 	
+    lcd.gotoXY(0, 1);
+    lcd.print(gyroError);
+	
+	//left p controller
+	leftSpeed = leftEnc_error - gyroError;
+	rightSpeed = rightEnc_error + gyroError;
+	
+	constrain(leftSpeed, -400, 400);
+	constrain(rightSpeed, -400, 400);
+	
+	motors.setSpeeds(leftSpeed, rightSpeed);
+
+
+}
+
+void enter_start(int *start)
+{
+	int x = 0;
+	int y = 0;
+
+	lcd.gotoXY(0,0);
+	lcd.print(x);
+	lcd.gotoXY(1,0);
+	lcd.print(y);
+
+	while(1)
+	{
+		lcd.gotoXY(0,0);
+		lcd.print(x);
+		lcd.gotoXY(1,0);
+		lcd.print(y);
+		
+		delay(10);
+		
+		lcd.clear();
+		
+		delay(10);
+		
+		if(buttonA.getSingleDebouncedRelease())
+		{
+			x = x + 1;
+		}
+		
+		if(buttonC.getSingleDebouncedRelease())
+		{
+			break;
+		}
+		
+		
+	}
+	
+	while(1)
+	{
+		lcd.gotoXY(0,0);
+		lcd.print(x);
+		lcd.gotoXY(1,0);
+		lcd.print(y);
+		
+		delay(10);
+		
+		lcd.clear();
+		
+		delay(10);
+		
+		if(buttonA.getSingleDebouncedRelease())
+		{
+			y = y + 1;
+		}
+		
+		if(buttonC.getSingleDebouncedRelease())
+		{
+			break;
+		}
+	}
+	
+	start[0] = x;
+	start[1] = y;
+}
+	
+
 	
 	
 
