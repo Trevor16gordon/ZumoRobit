@@ -208,8 +208,8 @@ void ir_init()
 	
 	proxSensors.initThreeSensors();
 	
-	uint16_t levels[16];
-	for(int i = 1; i < 16; i ++)
+	uint16_t levels[32];
+	for(int i = 1; i < 32; i ++)
 	{
 		levels[i-1] = i*2;
 	}
@@ -233,6 +233,7 @@ void align_frames(int *initial)
 	int max =0;
 	uint16_t values[3] = {0};
 	uint16_t lengths[4] = {0};
+	uint16_t avg = 0;
 	uint32_t m_speed = 100;
 	
 	// determine # of 90degree turns to rotate clockwise after max detect
@@ -260,9 +261,27 @@ void align_frames(int *initial)
 	
 	//rotate in 90 degree increments recording distances
 	for (int i=0; i<4; i++)
-	{
+	{	
+		
+		for (int k=0;k<4; k++)
+		{
+			ir_sense(values);
+			delay(100);
+			avg = avg + values[0];
+		}
+		
 		ir_sense(values);
 		lengths[i] = values[0]+values[1];
+		
+		lcd.gotoXY(0, 0);
+		lcd.print(values[1]);
+		lcd.print(F("   "));
+		lcd.gotoXY(0, 1);
+		lcd.print(values[0]);
+		lcd.print(F("   "));
+		delay(100);
+		
+		delay(100);
 		
 		motors.setSpeeds(0,0);
 		
@@ -271,6 +290,7 @@ void align_frames(int *initial)
 		motors.setSpeeds(0,0);
 		delay(1000);
 		turnSensorReset();
+		
 	}
 	
 	// determine minimum distance orientation to walls
@@ -441,7 +461,7 @@ void getCellsToVist(int (*cells_to_visit)[20][2], int* start_position, int* end_
 	// Loop to generate cells_to_visit to cover y dir
 	for (int j=abs(move_x); j<abs(steps); j++)
 	{
-		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - x_dir*abs(move_x);
+		(*cells_to_visit)[j][1] = start_position[1] + (j+1)*y_dir - y_dir*abs(move_x);
 		(*cells_to_visit)[j][0] = end_position[0];
 	}
 }
@@ -530,6 +550,141 @@ void find_dot()
 		
 	
 }
+
+void align2(int* initial)
+{
+	int turn_count;
+	uint16_t values[3] = {0};
+	int max_index =0;
+	int firstInstance=-1;
+	int secondInstance=0;
+	int split =0;
+	int turnNum;
+	int thresh = 26;
+	
+	// determine # of 90degree turns to rotate clockwise after max detect
+	
+	//Top left
+	if ((initial[0] < 5)&&(initial[1] > 4))
+	{
+		turn_count = 1;
+		split = 2;
+	}
+	// top right
+	else if ((initial[0] > 4)&&(initial[1] > 4))
+	{
+		turn_count = 0;
+		split = 1;
+	}
+	// Lower Left
+	else if ((initial[0] < 5)&&(initial[1] < 5))
+	{
+		turn_count = 2;
+		split =3;
+	}
+	// Lower Right
+	else
+	{
+		turn_count = 3;
+		split = 0;
+	}
+	
+	turnSensorReset();
+	
+	//turn and read front
+	for(int k=0; k<4; k++)
+	{
+		delay(100);
+		ir_sense(values);
+		delay(100);
+		
+		uint16_t current = values[1];
+		
+/* 		lcd.gotoXY(0, 0);
+		lcd.print(current);
+		lcd.print(F("   ")); */
+		
+		delay(100);
+		
+		
+		if ((current) > thresh && (firstInstance >-1))
+		{
+			secondInstance = k;
+			break;
+		}
+		else if(current > thresh)
+		{
+			firstInstance = k;
+			
+			delay(1000);
+		}
+		
+/* 		lcd.gotoXY(0, 0);
+		lcd.print(current);
+		lcd.print(F("   "));
+		lcd.gotoXY(0, 1);
+		lcd.print(firstInstance);
+		lcd.print(F("   ")); */
+		
+		motors.setSpeeds(0,0);
+		
+		turn(89, 'R', 0);
+		
+		motors.setSpeeds(0,0);
+		
+		turnSensorReset();
+		
+		delay(100);
+		
+
+		
+	}
+	
+		lcd.gotoXY(0, 0);
+		lcd.print(firstInstance);
+		lcd.print(F("   "));
+		
+		lcd.gotoXY(0, 1);
+		lcd.print(secondInstance);
+		lcd.print(F("   "));
+		
+		delay(3000);
+		
+		lcd.clear();
+		
+		delay(1000);
+		lcd.gotoXY(0, 0);
+		lcd.print(turnNum);
+		lcd.print(F("   "));
+	
+		turnNum = turn_count;
+		
+		if ((secondInstance-firstInstance) > 2)
+		{
+			turnNum = split;
+		}
+		
+		for(int j=0; j<turnNum; j++)
+		{
+		
+			turn(89, 'R', 0);
+			
+			motors.setSpeeds(0,0);
+
+				
+			turnSensorReset();
+		
+			delay(100);
+		}
+		
+}
+
+	
+	
+	
+	
+
+
 
 
 

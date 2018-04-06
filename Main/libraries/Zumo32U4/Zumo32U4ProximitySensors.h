@@ -235,7 +235,7 @@ public:
      * 300 us might be okay.
      *
      * The off time can be changed by calling setPulseOffTimeUs(). */
-    static const uint16_t defaultPulseOffTimeUs = 578;
+    static const uint16_t defaultPulseOffTimeUs = 578*5;
 
     /** \brief Sets the period used for the IR pulses.
      *

@@ -11,9 +11,9 @@ Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
-int end_pos[2] = {4,3};
-int start_pos[2] = {0,0};
-int current_pos[2] = {0,0};
+int end_pos[2] = {0,6};
+int start_pos[2] = {0,6};
+int current_pos[2] = {0,6};
 uint16_t objective = 200;
 int theta_desired;
 
@@ -41,13 +41,26 @@ void setup() {
   //runs once
 
   // determine array of cells to visit on our way to finish
-  line_sense_init();
+  ir_init();
+  //line_sense_init();
   motors.setSpeeds(0,0);
   delay(2000);
 
   turnSensorReset(); // Reset Orientation to zero
- 
+ int values[3] = {0};
 
+  align2(start_pos);
+  while(1)
+  {
+    ir_sense(values);
+    lcd.gotoXY(0, 0);
+    lcd.print(values[1]);
+    lcd.print(F("   "));
+    lcd.gotoXY(0, 1);
+    lcd.print(values[0]);
+    lcd.print(F("   "));
+    delay(500);
+  }
   Serial.begin(9600);
   
 

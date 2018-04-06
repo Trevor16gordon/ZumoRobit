@@ -17,6 +17,7 @@ void find_dot();
 
 
 void align_frames(int *initial);
+void align2(int *initial);
 void ir_sense(uint16_t* values);
 void ir_init();
 void turn(int angle, char direction, bool moving);
