@@ -562,8 +562,7 @@ void find_dot()
 	
 }
 
-<<<<<<< HEAD
-=======
+
 void align2(int* initial)
 {
 	int turn_count;
@@ -573,7 +572,7 @@ void align2(int* initial)
 	int secondInstance=0;
 	int split =0;
 	int turnNum;
-	int thresh = 26;
+	int thresh = 13;
 	
 	// determine # of 90degree turns to rotate clockwise after max detect
 	
