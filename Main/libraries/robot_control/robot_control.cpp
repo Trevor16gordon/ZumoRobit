@@ -208,8 +208,8 @@ void ir_init()
 	
 	proxSensors.initThreeSensors();
 	
-	uint16_t levels[32];
-	for(int i = 1; i < 32; i ++)
+	uint16_t levels[16];
+	for(int i = 1; i < 16; i ++)
 	{
 		levels[i-1] = i*2;
 	}
