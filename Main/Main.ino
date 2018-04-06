@@ -10,11 +10,12 @@ Zumo32U4Motors motors;
 Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
+Zumo32U4Buzzer buzzer;
 
 
-int start_pos[2] = {6,1};
-int current_pos[2] = {6,1};
-int end_pos[2] = {5,6};
+int start_pos[2] = {0,0};
+int current_pos[2] = {0,0};
+int end_pos[2] = {4,6};
 
 
 uint16_t objective = 210;
@@ -71,6 +72,14 @@ void setup() {
 //  }
 
   align2(start_pos);
+
+  // Start playing note A in octave 4 at maximum volume
+  // volume (15) for 2000 milliseconds.
+  buzzer.playNote(NOTE_A(4), 2000, 15);
+
+  // Wait for 200 ms and stop playing note.
+  delay(200);
+  buzzer.stopPlaying();
   
   Serial.begin(9600);
   
@@ -189,6 +198,9 @@ void loop() {
     turn(theta_desired, dir, 1);
     delay(100);
 
+
+
+
     bool obstacle = check_for_obstacle();
 
     if (!obstacle)
@@ -260,6 +272,7 @@ void loop() {
   turn(theta_desired, dir, 1);
 
 
+
   //find_dot();
 
   while (1){
@@ -278,19 +291,19 @@ void loop() {
 void drive(uint16_t objective, int16_t angle)
 {
 
-    while(abs(angle - turnAngle/turnAngle1) > 10 && abs(angle - turnAngle/turnAngle1) < 355)
-    {
-        lcd.clear();
-        lcd.gotoXY(0, 0);
-        lcd.print(String("SELF"));
-        lcd.print(F("   "));
-        lcd.gotoXY(0, 1);
-        lcd.print(String("DSTRCT"));
-        lcd.print(F("   "));
-        delay(500);
-        turn(angle, "L", 1);
-        turnSensorUpdate();
-    }
+//    while(abs(angle - turnAngle/turnAngle1) > 10 && abs(angle - turnAngle/turnAngle1) < 355)
+//    {
+//        lcd.clear();
+//        lcd.gotoXY(0, 0);
+//        lcd.print(String("SELF"));
+//        lcd.print(F("   "));
+//        lcd.gotoXY(0, 1);
+//        lcd.print(String("DSTRCT"));
+//        lcd.print(F("   "));
+//        delay(500);
+//        turn(angle, "L", 1);
+//        turnSensorUpdate();
+//    }
     
 
   while ( error > 2) {
@@ -364,7 +377,7 @@ bool check_for_obstacle()
     lcd.print(String(values[1]));
     lcd.print(F("   "));
 
-  if (values[1] > 14)
+  if (values[1] > 29)
   {
     return true;
   }
@@ -432,9 +445,9 @@ void getNextCellBug(int &xdiff, int &ydiff, String &bug_dir)
   {
    ir_sense(values);
     
-  front = front||(values[1] > 14);
-  right = right||(values[2] > 14);
-  left = left||(values[0] > 14);
+  front = front||(values[1] > 29);
+  right = right||(values[2] > 29);
+  left = left||(values[0] > 29);
   delay(50);
   }
 
