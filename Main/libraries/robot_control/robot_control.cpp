@@ -180,8 +180,8 @@ void ir_init()
 	
 	proxSensors.initThreeSensors();
 	
-	uint16_t levels[16];
-	for(int i = 1; i < 16; i ++)
+	uint16_t levels[32];
+	for(int i = 1; i < 32; i ++)
 	{
 		levels[i-1] = i*2;
 	}
@@ -350,15 +350,15 @@ void turn(int angle, char direction, bool moving)
 		//lcd.gotoXY(0, 0);
 		//lcd.print((((int32_t)turnAngle >> 16) * 360) >> 16);
 	}
-	int turn_angle_error = angle-turnAngle/turnAngle1;
-	  lcd.clear();
-      lcd.gotoXY(0, 0);
-      lcd.print(String("TDONE"));
-      lcd.print(F("   "));
-      lcd.gotoXY(0, 1);
-      lcd.print(String(turn_angle_error));
-      lcd.print(F("   "));
-      delay(500);
+	// int turn_angle_error = angle-turnAngle/turnAngle1;
+	//   lcd.clear();
+ //      lcd.gotoXY(0, 0);
+ //      lcd.print(String("TDONE"));
+ //      lcd.print(F("   "));
+ //      lcd.gotoXY(0, 1);
+ //      lcd.print(String(turn_angle_error));
+ //      lcd.print(F("   "));
+ //      delay(500);
 	
 	motors.setSpeeds(0,0);
 }
@@ -663,7 +663,6 @@ void align2(int* initial)
 		delay(3000);
 		
 		lcd.clear();
-		
 		delay(1000);
 		lcd.gotoXY(0, 0);
 		lcd.print(turnNum);
@@ -763,6 +762,7 @@ void enter_start(int *start)
 		
 	}
 	
+
 	while(1)
 	{
 		lcd.gotoXY(0,0);
@@ -791,4 +791,16 @@ void enter_start(int *start)
 	start[1] = y;
 }
 	
+
+
+	
+	
+
+
+
+
+
+
+
+
 
