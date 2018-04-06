@@ -11,24 +11,13 @@ Zumo32U4LineSensors lineSensors;
 Zumo32U4ProximitySensors proxSensors;
 Zumo32U4Encoders encoders;
 
-<<<<<<< HEAD
+
 int start_pos[2] = {6,1};
 int current_pos[2] = {6,1};
 int end_pos[2] = {5,6};
 
-<<<<<<< HEAD
-int end_pos[2] = {0,2};
-int start_pos[2] = {5,0};
-int current_pos[2] = {5,0};
-=======
-int end_pos[2] = {0,6};
-int start_pos[2] = {0,6};
-int current_pos[2] = {0,6};
->>>>>>> MITCHELL_WIP
-uint16_t objective = 200;
-=======
+
 uint16_t objective = 210;
->>>>>>> ef40bb37e1716372f940916d42dabd5d11d90a90
 int theta_desired;
 
 int maxTurnSpeed = 200;
@@ -54,28 +43,16 @@ void setup() {
 
   // after being placed fetch best estimate of location (uses kevins IR function)
   //runs once
-<<<<<<< HEAD
-  line_sense_init();
-  // determine array of cells to visit on our way to finish
-  ir_init();
-  
-=======
 
-  // determine array of cells to visit on our way to finish
-<<<<<<< HEAD
 
   ir_init();
   //line_sense_init();
->>>>>>> ef40bb37e1716372f940916d42dabd5d11d90a90
-=======
-  ir_init();
-  //line_sense_init();
->>>>>>> MITCHELL_WIP
+
   motors.setSpeeds(0,0);
   delay(200);
 
   turnSensorReset(); // Reset Orientation to zero
-<<<<<<< HEAD
+
 
     while (!buttonA.getSingleDebouncedRelease())
   {
@@ -92,22 +69,9 @@ void setup() {
 //  getNextCellBug(0, 0);
 //  delay(100);
 //  }
-=======
- int values[3] = {0};
->>>>>>> MITCHELL_WIP
 
   align2(start_pos);
-  while(1)
-  {
-    ir_sense(values);
-    lcd.gotoXY(0, 0);
-    lcd.print(values[1]);
-    lcd.print(F("   "));
-    lcd.gotoXY(0, 1);
-    lcd.print(values[0]);
-    lcd.print(F("   "));
-    delay(500);
-  }
+  
   Serial.begin(9600);
   
 
@@ -189,23 +153,14 @@ void loop() {
     case 1:
       theta_desired = 0;
       break;
-<<<<<<< HEAD
     case 0: 
       switch(y_move)
       {
-=======
-    case 0:
-      switch(y_move){
->>>>>>> ef40bb37e1716372f940916d42dabd5d11d90a90
         case -1:
         theta_desired = 270;
         break;
         case 1:
         theta_desired = +90;
-<<<<<<< HEAD
-        dir ='L';
-=======
->>>>>>> ef40bb37e1716372f940916d42dabd5d11d90a90
         break;
         default:
         theta_desired = 69;
